@@ -1,0 +1,110 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload } from 'lucide-react';
+
+interface EditableImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+  storageKey: string;
+  isEditing: boolean;
+  wrapperClassName?: string;
+}
+
+const EditableImage: React.FC<EditableImageProps> = ({ 
+  src, 
+  alt, 
+  className, 
+  storageKey, 
+  isEditing, 
+  wrapperClassName = "w-full h-full",
+  ...props 
+}) => {
+  const [currentSrc, setCurrentSrc] = useState<string | undefined>(src as string | undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved image from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`img_${storageKey}`);
+      if (saved) {
+        setCurrentSrc(saved);
+      } else {
+        setCurrentSrc(src as string | undefined);
+      }
+    } catch (e) {
+      console.error("Failed to access localStorage", e);
+    }
+  }, [storageKey, src]);
+
+  // Listen for global reset event
+  useEffect(() => {
+    const handleReset = () => {
+      localStorage.removeItem(`img_${storageKey}`);
+      setCurrentSrc(src as string | undefined);
+    };
+    window.addEventListener('reset-images', handleReset);
+    return () => window.removeEventListener('reset-images', handleReset);
+  }, [storageKey, src]);
+
+  // Listen for revert (Cancel Session)
+  useEffect(() => {
+    const handleRevert = () => {
+      const saved = localStorage.getItem(`img_${storageKey}`);
+      setCurrentSrc(saved || src as string | undefined);
+    };
+    window.addEventListener('revert-data', handleRevert);
+    return () => window.removeEventListener('revert-data', handleRevert);
+  }, [storageKey, src]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setCurrentSrc(result);
+        try {
+          localStorage.setItem(`img_${storageKey}`, result);
+        } catch (e) {
+          console.error("Failed to save to localStorage (likely quota exceeded)", e);
+          alert("Image is too large to save locally, but it will show for this session.");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className={`relative group ${wrapperClassName}`}>
+      <img 
+        src={currentSrc} 
+        alt={alt} 
+        className={`${className} transition-opacity duration-300`} 
+        {...props} 
+      />
+      
+      {isEditing && (
+        <div
+          className="absolute inset-0 bg-brand-dark/60 backdrop-blur-[2px] flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fileInputRef.current?.click();
+          }}
+        >
+          <div className="bg-white text-brand-dark px-4 py-2 rounded-full font-bold flex items-center gap-2 transform hover:scale-105 transition-transform shadow-xl border-2 border-brand-dark">
+            <Upload size={16} /> 
+            <span className="text-sm">Change Image</span>
+          </div>
+        </div>
+      )}
+      
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+};
+
+export default EditableImage;
