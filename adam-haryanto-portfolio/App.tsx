@@ -38,12 +38,50 @@ function App() {
   // Session Management
   const [appKey, setAppKey] = useState(0);
 
-  // Dynamic Data States
-  const [dynamicSkills, setDynamicSkills] = useState<SkillCategory[]>(SKILL_CATEGORIES);
-  const [dynamicProjects, setDynamicProjects] = useState<Project[]>(PROJECTS);
-  const [dynamicExperiences, setDynamicExperiences] = useState<Experience[]>(EXPERIENCES);
-  const [dynamicCertificates, setDynamicCertificates] = useState<Certificate[]>(CERTIFICATES);
-  const [dynamicContactButtons, setDynamicContactButtons] = useState<ContactButton[]>(CONTACT_BUTTONS);
+  // Dynamic Data States - Initialize from localStorage if available
+  const [dynamicSkills, setDynamicSkills] = useState<SkillCategory[]>(() => {
+    try {
+      const saved = localStorage.getItem('user_skills');
+      if (saved) return JSON.parse(saved);
+    } catch (e) { console.error(e); }
+    return SKILL_CATEGORIES;
+  });
+
+  const [dynamicProjects, setDynamicProjects] = useState<Project[]>(() => {
+    try {
+      const saved = localStorage.getItem('user_projects');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        console.log('Loaded projects from localStorage:', parsed.map((p: Project) => ({ id: p.id, screenshots: p.screenshots?.length || 0 })));
+        return parsed;
+      }
+    } catch (e) { console.error(e); }
+    return PROJECTS;
+  });
+
+  const [dynamicExperiences, setDynamicExperiences] = useState<Experience[]>(() => {
+    try {
+      const saved = localStorage.getItem('user_experiences');
+      if (saved) return JSON.parse(saved);
+    } catch (e) { console.error(e); }
+    return EXPERIENCES;
+  });
+
+  const [dynamicCertificates, setDynamicCertificates] = useState<Certificate[]>(() => {
+    try {
+      const saved = localStorage.getItem('user_certificates');
+      if (saved) return JSON.parse(saved);
+    } catch (e) { console.error(e); }
+    return CERTIFICATES;
+  });
+
+  const [dynamicContactButtons, setDynamicContactButtons] = useState<ContactButton[]>(() => {
+    try {
+      const saved = localStorage.getItem('user_contact_buttons');
+      if (saved) return JSON.parse(saved);
+    } catch (e) { console.error(e); }
+    return CONTACT_BUTTONS;
+  });
 
   const [artCategories, setArtCategories] = useState<ArtCategory[]>([
     {
@@ -91,25 +129,8 @@ function App() {
     });
   };
 
-  // Load data from local storage
+  // Load Art Categories from local storage (kept separate for migration logic)
   useEffect(() => {
-    const loadData = (key: string, setter: React.Dispatch<React.SetStateAction<any>>, prefix: string) => {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setter(ensureIds(parsed, prefix));
-        } catch (e) { console.error(e); }
-      }
-    };
-
-    loadData('user_skills', setDynamicSkills, 'skill');
-    loadData('user_projects', setDynamicProjects, 'proj');
-    loadData('user_experiences', setDynamicExperiences, 'exp');
-    loadData('user_certificates', setDynamicCertificates, 'cert');
-    loadData('user_contact_buttons', setDynamicContactButtons, 'contact');
-
-    // Special load for Art Categories
     const savedArt = localStorage.getItem('user_art_categories');
     if (savedArt) {
       try {
@@ -347,17 +368,26 @@ function App() {
     });
   };
   const addScreenshot = (projectIndex: number) => {
+    const newScreenshotUrl = `https://picsum.photos/seed/shot_${Date.now()}/300/200`;
     setDynamicProjects(prevProjects => {
       const updated = prevProjects.map((project, idx) => {
         if (idx === projectIndex) {
+          const newScreenshots = [...project.screenshots, newScreenshotUrl];
+          console.log(`Adding screenshot to project ${project.id}:`, newScreenshots.length, 'total');
           return {
             ...project,
-            screenshots: [...project.screenshots, "https://picsum.photos/seed/newshot/300/200"]
+            screenshots: newScreenshots
           };
         }
         return project;
       });
-      save('user_projects', updated);
+      // Save immediately after state update
+      try {
+        localStorage.setItem('user_projects', JSON.stringify(updated));
+        console.log('Saved projects to localStorage:', updated.map(p => ({ id: p.id, screenshots: p.screenshots.length })));
+      } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+      }
       return updated;
     });
   };
