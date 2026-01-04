@@ -266,13 +266,15 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   const renderMedia = () => {
     if (isYoutube(currentSrc)) {
       return (
-        <iframe
-          src={getYoutubeEmbed(currentSrc)}
-          className={className}
-          title={alt}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
+          <iframe
+            src={getYoutubeEmbed(currentSrc)}
+            className="absolute inset-0 w-full h-full"
+            title={alt}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
       );
     }
 
@@ -282,14 +284,16 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
       const fileId = getGoogleDriveFileId(currentSrc);
       if (fileId) {
         return (
-          <iframe
-            src={`https://drive.google.com/file/d/${fileId}/preview`}
-            className={className}
-            title={alt}
-            allow="autoplay; encrypted-media; fullscreen"
-            allowFullScreen
-            style={{ border: 'none' }}
-          />
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
+            <iframe
+              src={`https://drive.google.com/file/d/${fileId}/preview`}
+              className="absolute inset-0 w-full h-full"
+              title={alt}
+              allow="autoplay; encrypted-media; fullscreen"
+              allowFullScreen
+              style={{ border: 'none' }}
+            />
+          </div>
         );
       }
     }
