@@ -293,6 +293,7 @@ function App() {
       title: "New Project Title",
       category: "Game Category",
       engine: "Engine Name",
+      engineIcon: "unity",
       description: "Description of your awesome new project goes here.",
       role: "Your Role",
       status: "WIP",
@@ -845,7 +846,67 @@ function App() {
                             <span>|</span>
                             <EditableText initialText={project.engine} storageKey={`proj_eng_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
                           </div>
-                          <ExternalLink className="w-5 h-5 opacity-50 text-brand-dark" />
+                          {/* Engine Icon */}
+                          {(() => {
+                            const renderEngineIcon = (iconType?: string) => {
+                              switch (iconType) {
+                                case 'unity':
+                                  return (
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                      <path d="M10.4 17l-1.8 3.1L2 12l6.6-8.1 1.8 3.1-4 5-4 5zM12 8.6L14.4 4H21l-6.6 8 6.6 8h-6.6L12 15.4l-2.4 4.6H3l6.6-8L3 4h6.6L12 8.6z" />
+                                    </svg>
+                                  );
+                                case 'roblox':
+                                  return (
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                      <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm8.746 15.078l-5.088-1.326 1.326-5.088 5.088 1.326-1.326 5.088z" />
+                                    </svg>
+                                  );
+                                case 'godot':
+                                  return (
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 2c1.1 0 2.1.2 3.1.5-.3.4-.7.8-.9 1.3-.5.9-.3 2 .4 2.7l.9.9c-.3.1-.6.1-.9.2-1.4.3-2.4 1.5-2.4 2.9v1c0 .6.2 1.1.5 1.5-.8.1-1.6.3-2.3.6l-1.2.5c-.5.2-.9.5-1.2.9-.3-.4-.7-.7-1.2-.9l-1.2-.5c-.7-.3-1.5-.5-2.3-.6.3-.4.5-.9.5-1.5v-1c0-1.4-1-2.6-2.4-2.9-.3-.1-.6-.1-.9-.2l.9-.9c.7-.7.9-1.8.4-2.7-.2-.5-.6-.9-.9-1.3 1-.3 2-.5 3.1-.5zm-6 4c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zm12 0c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1zM8 13c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1s-1-.4-1-1v-2c0-.6.4-1 1-1zm8 0c.6 0 1 .4 1 1v2c0 .6-.4 1-1 1s-1-.4-1-1v-2c0-.6.4-1 1-1zm-4 2c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1z" />
+                                    </svg>
+                                  );
+                                case 'unreal':
+                                  return (
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 2.2c5.4 0 9.8 4.4 9.8 9.8 0 5.4-4.4 9.8-9.8 9.8-5.4 0-9.8-4.4-9.8-9.8 0-5.4 4.4-9.8 9.8-9.8zm-2 4.8v10l3-2v-4l4 4V8l-4 3V8l-3 2z" />
+                                    </svg>
+                                  );
+                                case 'gamemaker':
+                                  return (
+                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 4c4.4 0 8 3.6 8 8s-3.6 8-8 8-8-3.6-8-8 3.6-8 8-8zm0 2c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 2c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z" />
+                                    </svg>
+                                  );
+                                case 'custom':
+                                  return <ExternalLink className="w-5 h-5" />;
+                                default:
+                                  return null;
+                              }
+                            };
+
+                            return isEditMode ? (
+                              <select
+                                value={project.engineIcon || 'none'}
+                                onChange={(e) => updateProjectField(index, 'engineIcon', e.target.value)}
+                                className="text-xs border-2 border-brand-dark rounded px-2 py-1 bg-white text-brand-dark"
+                              >
+                                <option value="none">No Icon</option>
+                                <option value="unity">Unity</option>
+                                <option value="roblox">Roblox</option>
+                                <option value="godot">Godot</option>
+                                <option value="unreal">Unreal</option>
+                                <option value="gamemaker">GameMaker</option>
+                                <option value="custom">Link Icon</option>
+                              </select>
+                            ) : (
+                              <div className="opacity-70 text-brand-dark">
+                                {renderEngineIcon(project.engineIcon)}
+                              </div>
+                            );
+                          })()}
                         </div>
                         <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className="text-3xl font-black mb-4 text-brand-dark" />
                         <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed mb-6 text-brand-dark" />

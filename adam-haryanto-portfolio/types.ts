@@ -4,6 +4,7 @@ export interface Project {
   title: string;
   category: string;
   engine: string; // e.g., Unity, Roblox
+  engineIcon?: 'unity' | 'roblox' | 'godot' | 'unreal' | 'gamemaker' | 'custom' | 'none'; // Engine logo icon
   description: string;
   role: string;
   status: 'Prototype' | 'WIP' | 'Released';
