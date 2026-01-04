@@ -740,36 +740,64 @@ function App() {
                 <Card variant="white" className="p-6 md:p-8">
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="lg:col-span-7 flex flex-col gap-4">
-                      <div className="border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5">
-                        <EditableMedia src={project.image} alt={project.title} className="w-full h-auto" storageKey={`project_${project.id}_main`} isEditing={isEditMode} onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)} />
-                      </div>
-                      <ThumbnailScrollContainer isEditing={isEditMode} className="flex gap-4 overflow-x-auto pb-4 retro-scrollbar snap-x snap-mandatory -mx-2 px-2 items-center h-48">
-                        {project.screenshots.map((shot, sIdx) => (
-                          <div key={sIdx} className="h-40 flex-shrink-0 relative group/shot snap-start">
-                            <div className="h-full w-auto border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden bg-black/5 inline-block">
-                              <EditableMedia
-                                src={shot}
-                                alt="Screenshot"
-                                className="h-full w-auto object-contain"
-                                wrapperClassName="h-full w-auto"
-                                storageKey={`project_${project.id}_shot_${sIdx}`}
-                                isEditing={isEditMode}
-                                onUpdate={(newUrl) => updateProjectMedia(index, 'screenshot', newUrl, sIdx)}
-                              />
-                            </div>
-                            {isEditMode && (
-                              <button onClick={() => removeScreenshot(index, sIdx)} className="absolute top-2 right-2 bg-brand-red text-white p-1.5 rounded-md border-2 border-white shadow-retro-sm hover:scale-110 transition-transform z-40 cursor-pointer">
-                                <Trash2 size={14} />
-                              </button>
-                            )}
+                      {/* Main Media - Video gets 16:9 aspect ratio */}
+                      {(() => {
+                        const isVideo = (url: string) =>
+                          url.includes('youtube.com') ||
+                          url.includes('youtu.be') ||
+                          url.match(/\.(mp4|webm|ogg)$/i);
+
+                        const mainMediaSrc = localStorage.getItem(`media_project_${project.id}_main`) || project.image;
+                        const isVideoContent = isVideo(mainMediaSrc);
+
+                        return (
+                          <div className={`border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5 ${isVideoContent ? 'aspect-video' : ''}`}>
+                            <EditableMedia
+                              src={project.image}
+                              alt={project.title}
+                              className={`w-full ${isVideoContent ? 'h-full object-cover' : 'h-auto'}`}
+                              wrapperClassName={isVideoContent ? 'w-full h-full' : 'w-full'}
+                              storageKey={`project_${project.id}_main`}
+                              isEditing={isEditMode}
+                              onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
+                            />
                           </div>
-                        ))}
-                        {isEditMode && (
-                          <button onClick={() => addScreenshot(index)} className="min-w-[100px] h-40 flex-shrink-0 border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
-                            <Plus size={32} />
-                          </button>
-                        )}
-                      </ThumbnailScrollContainer>
+                        );
+                      })()}
+
+                      {/* Thumbnails - Horizontal Scroll */}
+                      <div className="relative">
+                        <ThumbnailScrollContainer
+                          isEditing={isEditMode}
+                          className="flex gap-3 overflow-x-auto pb-3 retro-scrollbar scroll-smooth snap-x snap-mandatory"
+                        >
+                          {project.screenshots.map((shot, sIdx) => (
+                            <div key={sIdx} className="flex-shrink-0 relative group/shot snap-start">
+                              <div className="h-28 md:h-36 w-auto border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
+                                <EditableMedia
+                                  src={shot}
+                                  alt="Screenshot"
+                                  className="h-full w-auto object-contain"
+                                  wrapperClassName="h-full w-auto"
+                                  storageKey={`project_${project.id}_shot_${sIdx}`}
+                                  isEditing={isEditMode}
+                                  onUpdate={(newUrl) => updateProjectMedia(index, 'screenshot', newUrl, sIdx)}
+                                />
+                              </div>
+                              {isEditMode && (
+                                <button onClick={() => removeScreenshot(index, sIdx)} className="absolute top-1 right-1 bg-brand-red text-white p-1 rounded-md border-2 border-white shadow-retro-sm hover:scale-110 transition-transform z-40 cursor-pointer">
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          {isEditMode && (
+                            <button onClick={() => addScreenshot(index)} className="min-w-[80px] h-28 md:h-36 flex-shrink-0 border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-lg flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
+                              <Plus size={24} />
+                            </button>
+                          )}
+                        </ThumbnailScrollContainer>
+                      </div>
                     </div>
                     <div className="lg:col-span-5 flex flex-col gap-6 text-brand-dark">
                       <div className="bg-brand-blue p-6 rounded-xl border-4 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light">
