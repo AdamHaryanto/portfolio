@@ -83,18 +83,29 @@ function App() {
     return CONTACT_BUTTONS;
   });
 
-  const [artCategories, setArtCategories] = useState<ArtCategory[]>([
-    {
-      id: '3d',
-      title: '3D Portfolio',
-      items: PORTFOLIO_3D.map((url, i) => ({ id: `3d_init_${i}`, url, type: 'image' }))
-    },
-    {
-      id: '2d',
-      title: '2D Portfolio',
-      items: PORTFOLIO_2D.map((url, i) => ({ id: `2d_init_${i}`, url, type: 'image' }))
-    }
-  ]);
+  const [artCategories, setArtCategories] = useState<ArtCategory[]>(() => {
+    try {
+      const saved = localStorage.getItem('user_art_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        console.log('Loaded art categories from localStorage:', parsed.length, 'categories');
+        return parsed;
+      }
+    } catch (e) { console.error(e); }
+    // Default values if nothing in localStorage
+    return [
+      {
+        id: '3d',
+        title: '3D Portfolio',
+        items: PORTFOLIO_3D.map((url, i) => ({ id: `3d_init_${i}`, url, type: 'image' }))
+      },
+      {
+        id: '2d',
+        title: '2D Portfolio',
+        items: PORTFOLIO_2D.map((url, i) => ({ id: `2d_init_${i}`, url, type: 'image' }))
+      }
+    ];
+  });
 
   // Modal State
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
@@ -129,28 +140,21 @@ function App() {
     });
   };
 
-  // Load Art Categories from local storage (kept separate for migration logic)
+  // Migration logic for old art portfolio structure (run once)
   useEffect(() => {
     const savedArt = localStorage.getItem('user_art_categories');
-    if (savedArt) {
-      try {
-        const parsed = JSON.parse(savedArt);
-        const fixed = parsed.map((cat: ArtCategory, i: number) => ({
-          ...cat,
-          items: ensureIds(cat.items, `art_${i}`)
-        }));
-        setArtCategories(fixed);
-      } catch (e) { console.error(e); }
-    } else {
+    if (!savedArt) {
       // Migration logic for old structure
       const old3D = localStorage.getItem('user_portfolio_3d');
       const old2D = localStorage.getItem('user_portfolio_2d');
       if (old3D || old2D) {
-        const newCats = [...artCategories];
-        if (old3D) { try { newCats[0].items = JSON.parse(old3D).map((u: string, i: number) => ({ id: `3d_mig_${i}`, url: u, type: 'image' })); } catch (e) { } }
-        if (old2D) { try { newCats[1].items = JSON.parse(old2D).map((u: string, i: number) => ({ id: `2d_mig_${i}`, url: u, type: 'image' })); } catch (e) { } }
-        setArtCategories(newCats);
-        localStorage.setItem('user_art_categories', JSON.stringify(newCats));
+        setArtCategories(prevCats => {
+          const newCats = [...prevCats];
+          if (old3D) { try { newCats[0].items = JSON.parse(old3D).map((u: string, i: number) => ({ id: `3d_mig_${i}`, url: u, type: 'image' })); } catch (e) { } }
+          if (old2D) { try { newCats[1].items = JSON.parse(old2D).map((u: string, i: number) => ({ id: `2d_mig_${i}`, url: u, type: 'image' })); } catch (e) { } }
+          localStorage.setItem('user_art_categories', JSON.stringify(newCats));
+          return newCats;
+        });
       }
     }
   }, []);
@@ -449,32 +453,69 @@ function App() {
   };
   const addArtCategory = () => {
     const newCat: ArtCategory = { id: `cat_${Date.now()}`, title: "New Portfolio Group", items: [] };
-    setArtCategories([...artCategories, newCat]);
-    save('user_art_categories', [...artCategories, newCat]);
+    setArtCategories(prev => {
+      const updated = [...prev, newCat];
+      save('user_art_categories', updated);
+      return updated;
+    });
   };
   const removeArtCategory = (index: number) => {
-    const updated = [...artCategories];
-    updated.splice(index, 1);
-    setArtCategories(updated);
-    save('user_art_categories', updated);
+    setArtCategories(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      save('user_art_categories', updated);
+      return updated;
+    });
   };
   const addArtItem = (catIndex: number) => {
-    const updated = [...artCategories];
-    updated[catIndex].items.push({ id: `art_item_${Date.now()}`, url: "https://picsum.photos/seed/newart/400/300", type: 'image' });
-    setArtCategories(updated);
-    save('user_art_categories', updated);
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i === catIndex) {
+          return {
+            ...cat,
+            items: [...cat.items, { id: `art_item_${Date.now()}`, url: "https://picsum.photos/seed/newart/400/300", type: 'image' as const }]
+          };
+        }
+        return cat;
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
   };
   const removeArtItem = (catIndex: number, itemIndex: number) => {
-    const updated = [...artCategories];
-    updated[catIndex].items.splice(itemIndex, 1);
-    setArtCategories(updated);
-    save('user_art_categories', updated);
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i === catIndex) {
+          return {
+            ...cat,
+            items: cat.items.filter((_, j) => j !== itemIndex)
+          };
+        }
+        return cat;
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
   };
   const updateArtItemUrl = (catIndex: number, itemIndex: number, newUrl: string) => {
-    const updated = [...artCategories];
-    updated[catIndex].items[itemIndex].url = newUrl;
-    setArtCategories(updated);
-    save('user_art_categories', updated);
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i === catIndex) {
+          return {
+            ...cat,
+            items: cat.items.map((item, j) => {
+              if (j === itemIndex) {
+                return { ...item, url: newUrl };
+              }
+              return item;
+            })
+          };
+        }
+        return cat;
+      });
+      save('user_art_categories', updated);
+      console.log('Art item URL updated:', { catIndex, itemIndex, newUrl: newUrl.substring(0, 50) + '...' });
+      return updated;
+    });
   };
 
   // --- CONTACT BUTTONS CRUD ---
