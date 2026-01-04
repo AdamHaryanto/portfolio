@@ -192,7 +192,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   };
 
   const handleUrlInput = () => {
-    const url = prompt("Enter Image or Video URL (YouTube, Vimeo, MP4, etc):", currentSrc);
+    const url = prompt("Enter Image or Video URL (YouTube, Vimeo, Google Drive, MP4, etc):", currentSrc);
     if (url !== null && url.trim() !== "") {
       saveMedia(url);
     }
@@ -201,6 +201,56 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   // Helper to detect media type
   const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be');
   const isVideoFile = (url: string) => url.match(/\.(mp4|webm|ogg)$/i) || url.startsWith('data:video');
+
+  // Google Drive helpers
+  const isGoogleDrive = (url: string) => url.includes('drive.google.com');
+
+  const getGoogleDriveFileId = (url: string): string | null => {
+    // Match patterns like:
+    // https://drive.google.com/file/d/FILE_ID/view
+    // https://drive.google.com/open?id=FILE_ID
+    // https://drive.google.com/uc?id=FILE_ID
+    // https://drive.google.com/uc?export=view&id=FILE_ID
+
+    const patterns = [
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,           // /file/d/FILE_ID/...
+      /[?&]id=([a-zA-Z0-9_-]+)/,               // ?id=FILE_ID or &id=FILE_ID
+      /\/d\/([a-zA-Z0-9_-]+)/,                  // /d/FILE_ID (short form)
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+
+  const getGoogleDriveImageUrl = (url: string): string => {
+    const fileId = getGoogleDriveFileId(url);
+    if (fileId) {
+      // Direct image URL format
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    return url;
+  };
+
+  const getGoogleDriveVideoEmbed = (url: string): string => {
+    const fileId = getGoogleDriveFileId(url);
+    if (fileId) {
+      // Embed preview format for videos
+      return `https://drive.google.com/file/d/${fileId}/preview`;
+    }
+    return url;
+  };
+
+  // Check if the Google Drive file is likely a video based on URL or context
+  const isGoogleDriveVideo = (url: string): boolean => {
+    // If URL contains video hints or the user explicitly says it's a video
+    const videoHints = ['video', 'mp4', 'mov', 'avi', 'mkv', 'webm'];
+    return videoHints.some(hint => url.toLowerCase().includes(hint));
+  };
 
   const getYoutubeEmbed = (url: string) => {
     let videoId = "";
@@ -212,10 +262,10 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     return `https://www.youtube.com/embed/${videoId}?rel=0`;
   };
 
-  return (
-    <div className={`relative group ${wrapperClassName} bg-black/5`}>
-      {/* Renderer */}
-      {isYoutube(currentSrc) ? (
+  // Determine how to render the media
+  const renderMedia = () => {
+    if (isYoutube(currentSrc)) {
+      return (
         <iframe
           src={getYoutubeEmbed(currentSrc)}
           className={className}
@@ -223,20 +273,58 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
-      ) : isVideoFile(currentSrc) ? (
+      );
+    }
+
+    if (isGoogleDrive(currentSrc)) {
+      // Check if it's a video
+      if (isGoogleDriveVideo(currentSrc)) {
+        return (
+          <iframe
+            src={getGoogleDriveVideoEmbed(currentSrc)}
+            className={className}
+            title={alt}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          />
+        );
+      }
+      // Otherwise treat as image
+      return (
+        <img
+          src={getGoogleDriveImageUrl(currentSrc)}
+          alt={alt}
+          className={className}
+          referrerPolicy="no-referrer"
+        />
+      );
+    }
+
+    if (isVideoFile(currentSrc)) {
+      return (
         <video
           src={currentSrc}
           className={className}
           controls
           playsInline
         />
-      ) : (
-        <img
-          src={currentSrc}
-          alt={alt}
-          className={className}
-        />
-      )}
+      );
+    }
+
+    // Default: treat as image
+    return (
+      <img
+        src={currentSrc}
+        alt={alt}
+        className={className}
+      />
+    );
+  };
+
+  return (
+    <div className={`relative group ${wrapperClassName} bg-black/5`}>
+      {/* Renderer */}
+      {renderMedia()}
 
       {/* Edit Overlay */}
       {isEditing && (
@@ -254,7 +342,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
             <Link size={16} /> Set URL
           </button>
           <span className="text-white text-[10px] opacity-70 mt-1 px-4 text-center">
-            Supports GIF • Use URL for Videos
+            GIF • Google Drive • YouTube
           </span>
         </div>
       )}
