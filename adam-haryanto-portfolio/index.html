@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -21,11 +22,17 @@
               'brand-yellow': '#F8D15C',
               'brand-green': '#58B896',
               'brand-red': '#E65D5D',
+              'brand-dark-bg': '#1a1a1a', 
             },
             boxShadow: {
               'retro': '4px 4px 0px 0px #2D2D2D',
+              'retro-light': '4px 4px 0px 0px #FFF8E7',
               'retro-sm': '2px 2px 0px 0px #2D2D2D',
+              'retro-sm-light': '2px 2px 0px 0px #FFF8E7',
               'retro-lg': '6px 6px 0px 0px #2D2D2D',
+            },
+            animation: {
+              'retro-badge': 'retro-float 3s ease-in-out infinite',
             }
           }
         }
@@ -44,6 +51,64 @@
       .no-scrollbar {
           -ms-overflow-style: none;  /* IE and Edge */
           scrollbar-width: none;  /* Firefox */
+      }
+      
+      /* Retro Scrollbar Horizontal */
+      .retro-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #2D2D2D transparent;
+      }
+      .dark .retro-scrollbar {
+        scrollbar-color: #FFF8E7 transparent;
+      }
+      .retro-scrollbar::-webkit-scrollbar {
+        height: 8px;
+      }
+      .retro-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .retro-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #2D2D2D;
+        border-radius: 4px;
+      }
+      .dark .retro-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #FFF8E7;
+      }
+
+      /* Custom Cool Title Animation */
+      @keyframes retro-float {
+        0%, 100% {
+          transform: translateY(0) rotate(0deg);
+          box-shadow: 4px 4px 0px 0px #2D2D2D;
+          border-color: #2D2D2D;
+        }
+        25% {
+          transform: translateY(-4px) rotate(-1deg);
+          box-shadow: 6px 8px 0px 0px #F47D3F; /* Orange Shift */
+          border-color: #F47D3F;
+        }
+        75% {
+          transform: translateY(-2px) rotate(1deg);
+          box-shadow: 2px 6px 0px 0px #48A9C5; /* Blue Shift */
+          border-color: #48A9C5;
+        }
+      }
+      .dark @keyframes retro-float {
+        0%, 100% {
+          transform: translateY(0) rotate(0deg);
+          box-shadow: 4px 4px 0px 0px #FFF8E7;
+          border-color: #FFF8E7;
+        }
+        25% {
+          transform: translateY(-4px) rotate(-1deg);
+          box-shadow: 6px 8px 0px 0px #F47D3F;
+          border-color: #F47D3F;
+        }
+        75% {
+          transform: translateY(-2px) rotate(1deg);
+          box-shadow: 2px 6px 0px 0px #48A9C5;
+          border-color: #48A9C5;
+        }
       }
     </style>
   <script type="importmap">

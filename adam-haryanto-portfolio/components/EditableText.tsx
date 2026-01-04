@@ -61,7 +61,7 @@ const EditableText: React.FC<EditableTextProps> = ({
 
   if (isEditing) {
     const widthClass = fullWidth ? 'w-full' : 'w-auto min-w-[20px]';
-    const inputClasses = `bg-white/50 border-2 border-brand-orange border-dashed rounded px-1 ${widthClass} focus:outline-none focus:bg-white text-inherit font-inherit ${className}`;
+    const inputClasses = `bg-white/50 dark:bg-gray-800 border-2 border-brand-orange border-dashed rounded px-1 ${widthClass} focus:outline-none focus:bg-white dark:focus:bg-gray-900 text-inherit font-inherit dark:text-white ${className}`;
     
     if (multiline) {
       return (

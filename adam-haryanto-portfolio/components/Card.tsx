@@ -22,8 +22,13 @@ const Card: React.FC<CardProps> = ({
       case 'yellow': return 'bg-brand-yellow';
       case 'green': return 'bg-brand-green';
       case 'red': return 'bg-brand-red';
-      default: return 'bg-white';
+      default: return 'bg-white dark:bg-brand-dark-bg';
     }
+  };
+
+  const getTextColor = () => {
+      if (variant === 'white') return 'text-brand-dark dark:text-brand-bg';
+      return 'text-brand-dark';
   };
 
   // Logic: 
@@ -35,9 +40,9 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div className={`
-      relative border-4 border-brand-dark rounded-xl
-      ${getBgColor()}
-      ${noShadow ? '' : `shadow-retro ${disableHover ? '' : 'hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]'}`}
+      relative border-4 border-brand-dark dark:border-brand-bg rounded-xl
+      ${getBgColor()} ${getTextColor()}
+      ${noShadow ? '' : `shadow-retro dark:shadow-retro-light ${disableHover ? '' : 'hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]'}`}
       transition-all duration-200 ease-in-out
       overflow-hidden
       ${className}

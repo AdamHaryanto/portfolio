@@ -1,22 +1,29 @@
 import React from 'react';
 
-const BackgroundAnimation: React.FC = () => {
+interface BackgroundAnimationProps {
+    isDarkMode?: boolean;
+}
+
+const BackgroundAnimation: React.FC<BackgroundAnimationProps> = ({ isDarkMode = false }) => {
+  // Grid color depends on mode
+  const gridColor = isDarkMode ? 'rgba(255, 248, 231, 0.1)' : '#2D2D2D';
+
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-brand-bg">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 bg-brand-bg dark:bg-brand-dark-bg transition-colors duration-300">
       
       {/* 1. Moving Grid Effect (Subtle Floor) */}
       <div className="absolute inset-0 opacity-[0.1]"
            style={{
-             backgroundImage: 'linear-gradient(#2D2D2D 1.5px, transparent 1.5px), linear-gradient(90deg, #2D2D2D 1.5px, transparent 1.5px)',
+             backgroundImage: `linear-gradient(${gridColor} 1.5px, transparent 1.5px), linear-gradient(90deg, ${gridColor} 1.5px, transparent 1.5px)`,
              backgroundSize: '50px 50px',
              animation: 'gridMove 60s linear infinite',
            }}
       />
 
       {/* 2. Large Soft Gradient Blobs (Atmosphere) */}
-      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-brand-orange/20 rounded-full blur-3xl animate-[blob_20s_infinite] mix-blend-multiply" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] bg-brand-blue/20 rounded-full blur-3xl animate-[blob_25s_infinite_reverse] mix-blend-multiply" />
-      <div className="absolute top-[40%] left-[30%] w-[400px] h-[400px] bg-brand-yellow/20 rounded-full blur-3xl animate-[pulse_10s_infinite] mix-blend-multiply" />
+      <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-brand-orange/20 rounded-full blur-3xl animate-[blob_20s_infinite] mix-blend-multiply dark:mix-blend-screen" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] bg-brand-blue/20 rounded-full blur-3xl animate-[blob_25s_infinite_reverse] mix-blend-multiply dark:mix-blend-screen" />
+      <div className="absolute top-[40%] left-[30%] w-[400px] h-[400px] bg-brand-yellow/20 rounded-full blur-3xl animate-[pulse_10s_infinite] mix-blend-multiply dark:mix-blend-screen" />
 
       {/* 3. Retro Memphis Shapes (The "Cool" Elements) */}
       <div className="absolute inset-0 w-full h-full">
@@ -46,10 +53,10 @@ const BackgroundAnimation: React.FC = () => {
          </div>
 
          {/* Plus Patterns - Scattered */}
-         <div className="absolute top-[70%] right-[20%] text-brand-dark opacity-20 animate-[spinSlow_20s_linear_infinite]">
+         <div className="absolute top-[70%] right-[20%] text-brand-dark dark:text-brand-bg opacity-20 animate-[spinSlow_20s_linear_infinite]">
              <PlusIcon size={80} />
          </div>
-         <div className="absolute top-[30%] left-[20%] text-brand-dark opacity-10 animate-[spinSlow_25s_linear_infinite_reverse]">
+         <div className="absolute top-[30%] left-[20%] text-brand-dark dark:text-brand-bg opacity-10 animate-[spinSlow_25s_linear_infinite_reverse]">
              <PlusIcon size={50} />
          </div>
 
@@ -60,7 +67,7 @@ const BackgroundAnimation: React.FC = () => {
          </div>
 
          {/* Dashed Circle - Big Center */}
-         <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] border-[6px] border-dashed border-brand-dark/10 rounded-full animate-[spinSlow_60s_linear_infinite]" />
+         <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] border-[6px] border-dashed border-brand-dark/10 dark:border-brand-bg/10 rounded-full animate-[spinSlow_60s_linear_infinite]" />
       </div>
 
       <style>{`
