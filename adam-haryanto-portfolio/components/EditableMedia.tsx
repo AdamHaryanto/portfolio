@@ -11,12 +11,12 @@ interface EditableMediaProps {
   onUpdate?: (newSrc: string) => void; // Optional callback if parent manages state
 }
 
-const EditableMedia: React.FC<EditableMediaProps> = ({ 
-  src, 
-  alt = "Media", 
-  className, 
-  storageKey, 
-  isEditing, 
+const EditableMedia: React.FC<EditableMediaProps> = ({
+  src,
+  alt = "Media",
+  className,
+  storageKey,
+  isEditing,
   wrapperClassName = "w-full h-full",
   onUpdate
 }) => {
@@ -29,7 +29,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
       const saved = localStorage.getItem(`media_${storageKey}`);
       if (saved) {
         setCurrentSrc(saved);
-        if(onUpdate) onUpdate(saved);
+        if (onUpdate) onUpdate(saved);
       } else {
         setCurrentSrc(src);
       }
@@ -43,7 +43,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     const handleReset = () => {
       localStorage.removeItem(`media_${storageKey}`);
       setCurrentSrc(src);
-      if(onUpdate) onUpdate(src);
+      if (onUpdate) onUpdate(src);
     };
     window.addEventListener('reset-images', handleReset);
     return () => window.removeEventListener('reset-images', handleReset);
@@ -54,7 +54,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     const handleRevert = () => {
       const saved = localStorage.getItem(`media_${storageKey}`);
       setCurrentSrc(saved || src);
-      if(onUpdate) onUpdate(saved || src);
+      if (onUpdate) onUpdate(saved || src);
     };
     window.addEventListener('revert-data', handleRevert);
     return () => window.removeEventListener('revert-data', handleRevert);
@@ -71,15 +71,83 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress image using canvas
+  const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.7): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new window.Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate new dimensions
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPEG with compression
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedDataUrl);
+      };
+
+      img.onerror = () => reject(new Error('Failed to load image'));
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        saveMedia(result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Compress the image before saving
+        const compressedImage = await compressImage(file, 1200, 0.7);
+        setCurrentSrc(compressedImage);
+        if (onUpdate) onUpdate(compressedImage);
+
+        try {
+          localStorage.setItem(`media_${storageKey}`, compressedImage);
+        } catch (storageError) {
+          // If still too large, try with lower quality
+          console.warn("First compression attempt failed, trying with lower quality...");
+          try {
+            const moreCompressed = await compressImage(file, 800, 0.5);
+            setCurrentSrc(moreCompressed);
+            if (onUpdate) onUpdate(moreCompressed);
+            localStorage.setItem(`media_${storageKey}`, moreCompressed);
+          } catch (e) {
+            console.error("Failed to save to localStorage even after compression", e);
+            alert("Image is too large to save locally. Try using a smaller image (under 1MB recommended).");
+          }
+        }
+      } catch (error) {
+        console.error("Failed to compress image", error);
+        // Fallback to original method
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          saveMedia(result);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -93,7 +161,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   // Helper to detect media type
   const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be');
   const isVideoFile = (url: string) => url.match(/\.(mp4|webm|ogg)$/i) || url.startsWith('data:video');
-  
+
   const getYoutubeEmbed = (url: string) => {
     let videoId = "";
     if (url.includes('youtube.com/watch?v=')) {
@@ -108,49 +176,49 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     <div className={`relative group ${wrapperClassName} bg-black/5`}>
       {/* Renderer */}
       {isYoutube(currentSrc) ? (
-        <iframe 
-          src={getYoutubeEmbed(currentSrc)} 
-          className={className} 
+        <iframe
+          src={getYoutubeEmbed(currentSrc)}
+          className={className}
           title={alt}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
       ) : isVideoFile(currentSrc) ? (
-        <video 
-          src={currentSrc} 
-          className={className} 
-          controls 
+        <video
+          src={currentSrc}
+          className={className}
+          controls
           playsInline
         />
       ) : (
-        <img 
-          src={currentSrc} 
-          alt={alt} 
-          className={className} 
+        <img
+          src={currentSrc}
+          alt={alt}
+          className={className}
         />
       )}
-      
+
       {/* Edit Overlay */}
       {isEditing && (
         <div className="absolute inset-0 bg-brand-dark/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20">
-            <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="bg-brand-green text-brand-dark px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:scale-105 transition-transform w-40 justify-center"
-            >
-                <Upload size={16} /> Upload Img
-            </button>
-            <button 
-                onClick={handleUrlInput}
-                className="bg-brand-orange text-brand-dark px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:scale-105 transition-transform w-40 justify-center"
-            >
-                <Link size={16} /> Set URL
-            </button>
-            <span className="text-white text-[10px] opacity-70 mt-1 px-4 text-center">
-              Use URL for Videos (YouTube/MP4)
-            </span>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="bg-brand-green text-brand-dark px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:scale-105 transition-transform w-40 justify-center"
+          >
+            <Upload size={16} /> Upload Img
+          </button>
+          <button
+            onClick={handleUrlInput}
+            className="bg-brand-orange text-brand-dark px-4 py-2 rounded-lg font-bold flex items-center gap-2 hover:scale-105 transition-transform w-40 justify-center"
+          >
+            <Link size={16} /> Set URL
+          </button>
+          <span className="text-white text-[10px] opacity-70 mt-1 px-4 text-center">
+            Use URL for Videos (YouTube/MP4)
+          </span>
         </div>
       )}
-      
+
       <input
         type="file"
         ref={fileInputRef}
