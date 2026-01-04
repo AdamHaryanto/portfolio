@@ -53,7 +53,7 @@ const EditableImage: React.FC<EditableImageProps> = ({
     return () => window.removeEventListener('revert-data', handleRevert);
   }, [storageKey, src]);
 
-  // Compress image using canvas
+  // Compress image using canvas with configurable settings
   const compressImage = (file: File, maxWidth: number = 1200, quality: number = 0.7): Promise<string> => {
     return new Promise((resolve, reject) => {
       const img = new window.Image();
@@ -96,9 +96,51 @@ const EditableImage: React.FC<EditableImageProps> = ({
     });
   };
 
+  // Try to save with multiple compression attempts
+  const trySaveWithCompression = async (file: File): Promise<{ success: boolean; dataUrl: string }> => {
+    // Compression levels to try (from high quality to low)
+    const compressionLevels = [
+      { maxWidth: 1600, quality: 0.8 },  // High quality
+      { maxWidth: 1200, quality: 0.7 },  // Medium-high
+      { maxWidth: 1000, quality: 0.6 },  // Medium
+      { maxWidth: 800, quality: 0.5 },   // Medium-low
+      { maxWidth: 600, quality: 0.4 },   // Low
+      { maxWidth: 500, quality: 0.3 },   // Very low
+      { maxWidth: 400, quality: 0.25 },  // Minimal
+    ];
+
+    let lastDataUrl = '';
+
+    for (const level of compressionLevels) {
+      try {
+        const compressedImage = await compressImage(file, level.maxWidth, level.quality);
+        lastDataUrl = compressedImage;
+
+        // Try to save to localStorage
+        try {
+          localStorage.setItem(`img_${storageKey}`, compressedImage);
+          console.log(`Saved with compression: ${level.maxWidth}px, ${level.quality * 100}% quality`);
+          return { success: true, dataUrl: compressedImage };
+        } catch (storageError) {
+          console.log(`Compression ${level.maxWidth}px failed, trying next level...`);
+          continue; // Try next compression level
+        }
+      } catch (compressError) {
+        console.error('Compression error:', compressError);
+        continue;
+      }
+    }
+
+    // All compression attempts failed, return last attempt anyway (for display only)
+    return { success: false, dataUrl: lastDataUrl };
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const fileSizeMB = file.size / (1024 * 1024);
+      console.log(`Uploading file: ${file.name}, Size: ${fileSizeMB.toFixed(2)}MB`);
+
       // Check if the file is a GIF - don't compress GIFs to preserve animation
       const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
 
@@ -112,47 +154,19 @@ const EditableImage: React.FC<EditableImageProps> = ({
             localStorage.setItem(`img_${storageKey}`, result);
           } catch (e) {
             console.error("Failed to save GIF to localStorage (likely too large)", e);
-            alert("GIF is too large to save locally. Try using a smaller GIF (under 2MB recommended) or use a URL instead.");
+            alert("GIF is too large to save locally. The image will display during this session but won't persist after reload. Try using a smaller GIF or a URL instead.");
           }
         };
         reader.readAsDataURL(file);
         return;
       }
 
-      // For non-GIF images, compress as usual
-      try {
-        const compressedImage = await compressImage(file, 1200, 0.7);
-        setCurrentSrc(compressedImage);
+      // For non-GIF images, use progressive compression
+      const result = await trySaveWithCompression(file);
+      setCurrentSrc(result.dataUrl);
 
-        try {
-          localStorage.setItem(`img_${storageKey}`, compressedImage);
-        } catch (storageError) {
-          // If still too large, try with lower quality
-          console.warn("First compression attempt failed, trying with lower quality...");
-          try {
-            const moreCompressed = await compressImage(file, 800, 0.5);
-            setCurrentSrc(moreCompressed);
-            localStorage.setItem(`img_${storageKey}`, moreCompressed);
-          } catch (e) {
-            console.error("Failed to save to localStorage even after compression", e);
-            alert("Image is too large to save locally. Try using a smaller image (under 1MB recommended).");
-          }
-        }
-      } catch (error) {
-        console.error("Failed to compress image", error);
-        // Fallback to original method
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          setCurrentSrc(result);
-          try {
-            localStorage.setItem(`img_${storageKey}`, result);
-          } catch (e) {
-            console.error("Failed to save to localStorage (likely quota exceeded)", e);
-            alert("Image is too large to save locally, but it will show for this session.");
-          }
-        };
-        reader.readAsDataURL(file);
+      if (!result.success) {
+        alert("Image was compressed to display, but it's still too large to save permanently. The image will show during this session. For permanent storage, try a smaller image or use a URL.");
       }
     }
   };
