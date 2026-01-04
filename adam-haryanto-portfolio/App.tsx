@@ -18,9 +18,10 @@ import {
   PORTFOLIO_3D,
   PORTFOLIO_2D,
   SOCIAL_LINKS,
-  CERTIFICATES
+  CERTIFICATES,
+  CONTACT_BUTTONS
 } from './constants';
-import { SkillCategory, Project, Experience, Certificate, ArtCategory, ArtItem } from './types';
+import { SkillCategory, Project, Experience, Certificate, ArtCategory, ArtItem, ContactButton } from './types';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,6 +43,7 @@ function App() {
   const [dynamicProjects, setDynamicProjects] = useState<Project[]>(PROJECTS);
   const [dynamicExperiences, setDynamicExperiences] = useState<Experience[]>(EXPERIENCES);
   const [dynamicCertificates, setDynamicCertificates] = useState<Certificate[]>(CERTIFICATES);
+  const [dynamicContactButtons, setDynamicContactButtons] = useState<ContactButton[]>(CONTACT_BUTTONS);
 
   const [artCategories, setArtCategories] = useState<ArtCategory[]>([
     {
@@ -105,6 +107,7 @@ function App() {
     loadData('user_projects', setDynamicProjects, 'proj');
     loadData('user_experiences', setDynamicExperiences, 'exp');
     loadData('user_certificates', setDynamicCertificates, 'cert');
+    loadData('user_contact_buttons', setDynamicContactButtons, 'contact');
 
     // Special load for Art Categories
     const savedArt = localStorage.getItem('user_art_categories');
@@ -144,6 +147,7 @@ function App() {
       experiences: JSON.parse(JSON.stringify(dynamicExperiences)),
       certificates: JSON.parse(JSON.stringify(dynamicCertificates)),
       artCategories: JSON.parse(JSON.stringify(artCategories)),
+      contactButtons: JSON.parse(JSON.stringify(dynamicContactButtons)),
       localStorage: {}
     };
 
@@ -211,6 +215,7 @@ function App() {
       if (snap.experiences) save('user_experiences', snap.experiences);
       if (snap.certificates) save('user_certificates', snap.certificates);
       if (snap.artCategories) save('user_art_categories', snap.artCategories);
+      if (snap.contactButtons) save('user_contact_buttons', snap.contactButtons);
 
       // 4. Clear backup
       sessionStorage.removeItem('portfolio_backup');
@@ -401,6 +406,33 @@ function App() {
     updated[catIndex].items[itemIndex].url = newUrl;
     setArtCategories(updated);
     save('user_art_categories', updated);
+  };
+
+  // --- CONTACT BUTTONS CRUD ---
+  const addContactButton = () => {
+    const newButton: ContactButton = {
+      id: `contact_${Date.now()}`,
+      label: "New Button",
+      displayText: "@username",
+      url: "https://example.com",
+      icon: "link",
+      variant: "blue"
+    };
+    const updated = [...dynamicContactButtons, newButton];
+    setDynamicContactButtons(updated);
+    save('user_contact_buttons', updated);
+  };
+  const removeContactButton = (index: number) => {
+    const updated = [...dynamicContactButtons];
+    updated.splice(index, 1);
+    setDynamicContactButtons(updated);
+    save('user_contact_buttons', updated);
+  };
+  const updateContactButton = (index: number, field: keyof ContactButton, value: string) => {
+    const updated = [...dynamicContactButtons];
+    updated[index] = { ...updated[index], [field]: value };
+    setDynamicContactButtons(updated);
+    save('user_contact_buttons', updated);
   };
 
   // --- CONTACT FORM & CHEAT CODE ---
@@ -927,33 +959,124 @@ function App() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer">
-                  <Card variant="blue" className="p-4 flex items-center justify-between hover:bg-[#5AC5E3] cursor-pointer text-brand-dark">
-                    <div className="flex items-center gap-4"><Instagram size={32} /><span className="font-bold text-lg">Instagram</span></div>
-                    <span className="font-black underline">@xynite.x</span>
-                  </Card>
-                </a>
-                <a href={SOCIAL_LINKS.whatsapp} target="_blank" rel="noreferrer">
-                  <Card variant="orange" className="p-4 flex items-center justify-between hover:bg-[#FF8E52] cursor-pointer text-brand-dark">
-                    <div className="flex items-center gap-4"><Phone size={32} /><span className="font-bold text-lg">Whatsapp</span></div>
-                    <span className="font-black text-xs md:text-sm">+62 813 9872 1857</span>
-                  </Card>
-                </a>
-                <a href={`mailto:${SOCIAL_LINKS.email}`}>
-                  <Card variant="yellow" className="p-4 flex items-center justify-between hover:bg-[#FCE06D] cursor-pointer text-brand-dark">
-                    <div className="flex items-center gap-4"><Mail size={32} /><span className="font-bold text-lg">Email</span></div>
-                    <span className="font-black text-xs md:text-sm truncate max-w-[120px]">{SOCIAL_LINKS.email}</span>
-                  </Card>
-                </a>
-                <a href={SOCIAL_LINKS.discord} target="_blank" rel="noreferrer">
-                  <Card variant="green" className="p-4 flex items-center justify-between hover:bg-[#68D2AD] cursor-pointer text-brand-dark">
-                    <div className="flex items-center gap-4">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.2 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09 0 .11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.48-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-9.21-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.85 2.12-1.89 2.12z" /></svg>
-                      <span className="font-bold text-lg">Discord</span>
+                {dynamicContactButtons.map((btn, index) => {
+                  // Helper function to render icon
+                  const renderIcon = (iconType: string) => {
+                    switch (iconType) {
+                      case 'instagram': return <Instagram size={32} />;
+                      case 'phone': return <Phone size={32} />;
+                      case 'mail': return <Mail size={32} />;
+                      case 'linkedin': return <Linkedin size={32} />;
+                      case 'github': return <Github size={32} />;
+                      case 'discord': return (
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.2 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09 0 .11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.48-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-9.21-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.85 2.12-1.89 2.12z" /></svg>
+                      );
+                      default: return <LinkIcon size={32} />;
+                    }
+                  };
+
+                  // Get hover color based on variant
+                  const getHoverColor = (variant: string) => {
+                    switch (variant) {
+                      case 'blue': return 'hover:bg-[#5AC5E3]';
+                      case 'orange': return 'hover:bg-[#FF8E52]';
+                      case 'yellow': return 'hover:bg-[#FCE06D]';
+                      case 'green': return 'hover:bg-[#68D2AD]';
+                      default: return 'hover:bg-gray-200';
+                    }
+                  };
+
+                  return (
+                    <div key={btn.id} className="relative group/contact">
+                      {isEditMode ? (
+                        <Card variant={btn.variant} className="p-4 text-brand-dark">
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 justify-between">
+                              <div className="flex items-center gap-2">
+                                {renderIcon(btn.icon)}
+                                <input
+                                  type="text"
+                                  value={btn.label}
+                                  onChange={(e) => updateContactButton(index, 'label', e.target.value)}
+                                  className="font-bold text-lg bg-white/50 border border-brand-dark rounded px-2 py-1 w-28"
+                                  placeholder="Label"
+                                />
+                              </div>
+                              <button
+                                onClick={() => removeContactButton(index)}
+                                className="bg-brand-red text-white p-1.5 rounded-md hover:scale-110 transition-transform"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                            <div className="flex gap-2">
+                              <select
+                                value={btn.icon}
+                                onChange={(e) => updateContactButton(index, 'icon', e.target.value)}
+                                className="text-xs border border-brand-dark rounded px-2 py-1 bg-white"
+                              >
+                                <option value="instagram">Instagram</option>
+                                <option value="phone">Phone</option>
+                                <option value="mail">Email</option>
+                                <option value="discord">Discord</option>
+                                <option value="linkedin">LinkedIn</option>
+                                <option value="github">GitHub</option>
+                                <option value="link">Link</option>
+                              </select>
+                              <select
+                                value={btn.variant}
+                                onChange={(e) => updateContactButton(index, 'variant', e.target.value)}
+                                className="text-xs border border-brand-dark rounded px-2 py-1 bg-white"
+                              >
+                                <option value="blue">Blue</option>
+                                <option value="orange">Orange</option>
+                                <option value="yellow">Yellow</option>
+                                <option value="green">Green</option>
+                                <option value="white">White</option>
+                              </select>
+                            </div>
+                            <input
+                              type="text"
+                              value={btn.displayText}
+                              onChange={(e) => updateContactButton(index, 'displayText', e.target.value)}
+                              className="w-full font-bold text-sm bg-white/50 border border-brand-dark rounded px-2 py-1"
+                              placeholder="Display Text (e.g. @username)"
+                            />
+                            <div className="flex items-center gap-1 bg-white/50 border border-brand-dark rounded px-2 py-1">
+                              <LinkIcon size={14} />
+                              <input
+                                type="text"
+                                value={btn.url}
+                                onChange={(e) => updateContactButton(index, 'url', e.target.value)}
+                                className="w-full text-xs bg-transparent focus:outline-none"
+                                placeholder="https://..."
+                              />
+                            </div>
+                          </div>
+                        </Card>
+                      ) : (
+                        <a href={btn.url} target="_blank" rel="noreferrer">
+                          <Card variant={btn.variant} className={`p-4 flex items-center justify-between ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
+                            <div className="flex items-center gap-4">
+                              {renderIcon(btn.icon)}
+                              <span className="font-bold text-lg">{btn.label}</span>
+                            </div>
+                            <span className="font-black text-xs md:text-sm truncate max-w-[150px]">{btn.displayText}</span>
+                          </Card>
+                        </a>
+                      )}
                     </div>
-                    <span className="font-black">xynite</span>
-                  </Card>
-                </a>
+                  );
+                })}
+                {isEditMode && (
+                  <button
+                    onClick={addContactButton}
+                    className="min-h-[80px] border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all"
+                  >
+                    <Plus size={24} />
+                    <span className="font-bold text-sm mt-1">Add Contact</span>
+                  </button>
+                )}
               </div>
               <Card variant="white" className="p-6">
                 <h3 className="text-xl font-black mb-4 uppercase flex items-center gap-2 text-brand-dark dark:text-brand-bg"><Mail size={24} /> Send me an email</h3>

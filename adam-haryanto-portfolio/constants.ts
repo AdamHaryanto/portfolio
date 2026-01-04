@@ -1,5 +1,5 @@
 
-import { Project, Experience, Education, SkillCategory, Certificate } from './types';
+import { Project, Experience, Education, SkillCategory, Certificate, ContactButton } from './types';
 
 export const SOCIAL_LINKS = {
   instagram: "https://instagram.com/xynite.x",
@@ -10,6 +10,41 @@ export const SOCIAL_LINKS = {
   github: "https://github.com/adamharyanto",
   discord: "https://discord.gg/VxKA5gFTS7"
 };
+
+export const CONTACT_BUTTONS: ContactButton[] = [
+  {
+    id: "contact_1",
+    label: "Instagram",
+    displayText: "@xynite.x",
+    url: "https://instagram.com/xynite.x",
+    icon: "instagram",
+    variant: "blue"
+  },
+  {
+    id: "contact_2",
+    label: "Whatsapp",
+    displayText: "+62 813 9872 1857",
+    url: "https://wa.me/6281398721857",
+    icon: "phone",
+    variant: "orange"
+  },
+  {
+    id: "contact_3",
+    label: "Email",
+    displayText: "adamharyanto05@gmail.com",
+    url: "mailto:adamharyanto05@gmail.com",
+    icon: "mail",
+    variant: "yellow"
+  },
+  {
+    id: "contact_4",
+    label: "Discord",
+    displayText: "xynite",
+    url: "https://discord.gg/VxKA5gFTS7",
+    icon: "discord",
+    variant: "green"
+  }
+];
 
 export const CERTIFICATES: Certificate[] = [
   {
@@ -154,7 +189,7 @@ export const PROJECTS: Project[] = [
     image: "https://picsum.photos/seed/seedsell/600/400",
     screenshots: ["https://picsum.photos/seed/seed1/300/200", "https://picsum.photos/seed/seed2/300/200"]
   },
-   {
+  {
     id: "proj_5",
     title: "Paradrinks",
     category: "Studio Project",

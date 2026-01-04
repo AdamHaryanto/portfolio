@@ -58,3 +58,13 @@ export interface ArtCategory {
   title: string;
   items: ArtItem[];
 }
+
+// Contact Button Type for editable contact section
+export interface ContactButton {
+  id: string;
+  label: string;       // e.g., "Instagram", "WhatsApp"
+  displayText: string; // e.g., "@xynite.x", "+62 813 9872 1857"
+  url: string;         // The link URL
+  icon: 'instagram' | 'phone' | 'mail' | 'discord' | 'linkedin' | 'github' | 'link';
+  variant: 'blue' | 'orange' | 'yellow' | 'green' | 'white';
+}
