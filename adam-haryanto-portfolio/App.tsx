@@ -300,40 +300,78 @@ function App() {
       image: "https://picsum.photos/seed/newproject/600/400",
       screenshots: ["https://picsum.photos/seed/s1/300/200", "https://picsum.photos/seed/s2/300/200"]
     };
-    const updated = [...dynamicProjects, newProject];
-    setDynamicProjects(updated);
-    save('user_projects', updated);
+    setDynamicProjects(prevProjects => {
+      const updated = [...prevProjects, newProject];
+      save('user_projects', updated);
+      return updated;
+    });
   };
   const removeProject = (index: number) => {
-    const updated = [...dynamicProjects];
-    updated.splice(index, 1);
-    setDynamicProjects(updated);
-    save('user_projects', updated);
+    setDynamicProjects(prevProjects => {
+      const updated = prevProjects.filter((_, i) => i !== index);
+      save('user_projects', updated);
+      return updated;
+    });
   };
   const updateProjectField = (index: number, field: keyof Project, value: any) => {
-    const updated = [...dynamicProjects];
-    updated[index] = { ...updated[index], [field]: value };
-    setDynamicProjects(updated);
-    save('user_projects', updated);
+    setDynamicProjects(prevProjects => {
+      const updated = prevProjects.map((project, i) => {
+        if (i === index) {
+          return { ...project, [field]: value };
+        }
+        return project;
+      });
+      save('user_projects', updated);
+      return updated;
+    });
   };
   const updateProjectMedia = (pIndex: number, mediaType: 'main' | 'screenshot', url: string, sIndex?: number) => {
-    const updated = [...dynamicProjects];
-    if (mediaType === 'main') { updated[pIndex].image = url; }
-    else if (typeof sIndex === 'number') { updated[pIndex].screenshots[sIndex] = url; }
-    setDynamicProjects(updated);
-    save('user_projects', updated);
+    setDynamicProjects(prevProjects => {
+      // Deep copy to avoid mutation
+      const updated = prevProjects.map((project, idx) => {
+        if (idx === pIndex) {
+          if (mediaType === 'main') {
+            return { ...project, image: url };
+          } else if (typeof sIndex === 'number') {
+            const newScreenshots = [...project.screenshots];
+            newScreenshots[sIndex] = url;
+            return { ...project, screenshots: newScreenshots };
+          }
+        }
+        return project;
+      });
+      // Save synchronously to ensure persistence
+      save('user_projects', updated);
+      return updated;
+    });
   };
   const addScreenshot = (projectIndex: number) => {
-    const updated = [...dynamicProjects];
-    updated[projectIndex].screenshots.push("https://picsum.photos/seed/newshot/300/200");
-    setDynamicProjects(updated);
-    save('user_projects', updated);
+    setDynamicProjects(prevProjects => {
+      const updated = prevProjects.map((project, idx) => {
+        if (idx === projectIndex) {
+          return {
+            ...project,
+            screenshots: [...project.screenshots, "https://picsum.photos/seed/newshot/300/200"]
+          };
+        }
+        return project;
+      });
+      save('user_projects', updated);
+      return updated;
+    });
   };
   const removeScreenshot = (projectIndex: number, shotIndex: number) => {
-    const updated = [...dynamicProjects];
-    updated[projectIndex].screenshots.splice(shotIndex, 1);
-    setDynamicProjects(updated);
-    save('user_projects', updated);
+    setDynamicProjects(prevProjects => {
+      const updated = prevProjects.map((project, idx) => {
+        if (idx === projectIndex) {
+          const newScreenshots = project.screenshots.filter((_, i) => i !== shotIndex);
+          return { ...project, screenshots: newScreenshots };
+        }
+        return project;
+      });
+      save('user_projects', updated);
+      return updated;
+    });
   };
   const addExperience = () => {
     const newExp: Experience = {
