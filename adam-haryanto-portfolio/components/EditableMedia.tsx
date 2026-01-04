@@ -277,27 +277,21 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     }
 
     if (isGoogleDrive(currentSrc)) {
-      // Check if it's a video
-      if (isGoogleDriveVideo(currentSrc)) {
+      // Always use iframe preview for Google Drive
+      // This works for both videos and images since we can't reliably detect file type from URL
+      const fileId = getGoogleDriveFileId(currentSrc);
+      if (fileId) {
         return (
           <iframe
-            src={getGoogleDriveVideoEmbed(currentSrc)}
+            src={`https://drive.google.com/file/d/${fileId}/preview`}
             className={className}
             title={alt}
-            allow="autoplay; encrypted-media"
+            allow="autoplay; encrypted-media; fullscreen"
             allowFullScreen
+            style={{ border: 'none' }}
           />
         );
       }
-      // Otherwise treat as image
-      return (
-        <img
-          src={getGoogleDriveImageUrl(currentSrc)}
-          alt={alt}
-          className={className}
-          referrerPolicy="no-referrer"
-        />
-      );
     }
 
     if (isVideoFile(currentSrc)) {
