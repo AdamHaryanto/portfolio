@@ -49,7 +49,8 @@ export interface Certificate {
 // New Types for Dynamic Art Portfolio
 export interface ArtItem {
   id: string; // Added ID
-  url: string;
+  url: string; // Primary/first image (kept for backward compatibility)
+  urls?: string[]; // Multiple images for gallery/carousel
   description?: string;
   type?: 'image' | 'video'; // Hint for rendering
 }

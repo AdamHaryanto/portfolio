@@ -472,7 +472,12 @@ function App() {
         if (i === catIndex) {
           return {
             ...cat,
-            items: [...cat.items, { id: `art_item_${Date.now()}`, url: "https://picsum.photos/seed/newart/400/300", type: 'image' as const }]
+            items: [...cat.items, {
+              id: `art_item_${Date.now()}`,
+              url: "https://picsum.photos/seed/newart/400/300",
+              urls: ["https://picsum.photos/seed/newart/400/300"], // Initialize with one image
+              type: 'image' as const
+            }]
           };
         }
         return cat;
@@ -496,6 +501,7 @@ function App() {
       return updated;
     });
   };
+  // Update the primary URL (first image or single image for backward compatibility)
   const updateArtItemUrl = (catIndex: number, itemIndex: number, newUrl: string) => {
     setArtCategories(prev => {
       const updated = prev.map((cat, i) => {
@@ -504,7 +510,14 @@ function App() {
             ...cat,
             items: cat.items.map((item, j) => {
               if (j === itemIndex) {
-                return { ...item, url: newUrl };
+                // Update both url and first item in urls array
+                const newUrls = item.urls ? [...item.urls] : [item.url];
+                if (newUrls.length > 0) {
+                  newUrls[0] = newUrl;
+                } else {
+                  newUrls.push(newUrl);
+                }
+                return { ...item, url: newUrl, urls: newUrls };
               }
               return item;
             })
@@ -514,6 +527,80 @@ function App() {
       });
       save('user_art_categories', updated);
       console.log('Art item URL updated:', { catIndex, itemIndex, newUrl: newUrl.substring(0, 50) + '...' });
+      return updated;
+    });
+  };
+  // Add a new image to an art item's gallery
+  const addImageToArtItem = (catIndex: number, itemIndex: number) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i === catIndex) {
+          return {
+            ...cat,
+            items: cat.items.map((item, j) => {
+              if (j === itemIndex) {
+                const currentUrls = item.urls || [item.url];
+                const newUrl = `https://picsum.photos/seed/gallery_${Date.now()}/400/300`;
+                return { ...item, urls: [...currentUrls, newUrl] };
+              }
+              return item;
+            })
+          };
+        }
+        return cat;
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
+  // Remove an image from an art item's gallery
+  const removeImageFromArtItem = (catIndex: number, itemIndex: number, imageIndex: number) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i === catIndex) {
+          return {
+            ...cat,
+            items: cat.items.map((item, j) => {
+              if (j === itemIndex) {
+                const currentUrls = item.urls || [item.url];
+                const newUrls = currentUrls.filter((_, k) => k !== imageIndex);
+                // Keep at least one image
+                if (newUrls.length === 0) {
+                  return item; // Don't remove if it's the last image
+                }
+                return { ...item, url: newUrls[0], urls: newUrls };
+              }
+              return item;
+            })
+          };
+        }
+        return cat;
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
+  // Update a specific image in an art item's gallery
+  const updateArtItemImage = (catIndex: number, itemIndex: number, imageIndex: number, newUrl: string) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i === catIndex) {
+          return {
+            ...cat,
+            items: cat.items.map((item, j) => {
+              if (j === itemIndex) {
+                const currentUrls = item.urls || [item.url];
+                const newUrls = [...currentUrls];
+                newUrls[imageIndex] = newUrl;
+                return { ...item, url: newUrls[0], urls: newUrls };
+              }
+              return item;
+            })
+          };
+        }
+        return cat;
+      });
+      save('user_art_categories', updated);
       return updated;
     });
   };
@@ -1069,21 +1156,84 @@ function App() {
                 </div>
                 <Card variant="white" className="p-6 rounded-tl-none relative z-40" disableHover>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-                    {category.items.map((item, itemIndex) => (
-                      <div key={item.id} className="group relative border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden bg-black/5">
-                        <EditableMedia src={item.url} alt={`${category.title} ${itemIndex + 1}`} className="w-full h-auto block transition-transform duration-500 group-hover:scale-105" wrapperClassName="w-full h-auto" storageKey={`art_item_${item.id}`} isEditing={isEditMode} onUpdate={(newUrl) => updateArtItemUrl(catIndex, itemIndex, newUrl)} />
-                        <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center pb-6 transition-opacity duration-300 pointer-events-none ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                          <div className="pointer-events-auto px-4 text-center w-full">
-                            <EditableText initialText={`Artwork #${itemIndex + 1}`} storageKey={`art_desc_${item.id}`} isEditing={isEditMode} className="text-white font-black text-lg uppercase tracking-wider drop-shadow-md" />
+                    {category.items.map((item, itemIndex) => {
+                      // Get all images for this item (backward compatible)
+                      const images = item.urls && item.urls.length > 0 ? item.urls : [item.url];
+                      const hasMultipleImages = images.length > 1;
+
+                      return (
+                        <div key={item.id} className="group relative border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden bg-black/5">
+                          {/* Gallery Container with Horizontal Scroll */}
+                          <div className="relative">
+                            <div
+                              className={`flex overflow-x-auto snap-x snap-mandatory scrollbar-hide ${hasMultipleImages ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+                              onWheel={(e) => {
+                                if (hasMultipleImages && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                                  e.currentTarget.scrollLeft += e.deltaY;
+                                }
+                              }}
+                            >
+                              {images.map((imgUrl, imgIndex) => (
+                                <div key={imgIndex} className="flex-shrink-0 w-full snap-center relative">
+                                  <EditableMedia
+                                    src={imgUrl}
+                                    alt={`${category.title} ${itemIndex + 1} - ${imgIndex + 1}`}
+                                    className="w-full h-auto block transition-transform duration-500"
+                                    wrapperClassName="w-full h-auto"
+                                    storageKey={`art_item_${item.id}_${imgIndex}`}
+                                    isEditing={isEditMode}
+                                    onUpdate={(newUrl) => updateArtItemImage(catIndex, itemIndex, imgIndex, newUrl)}
+                                  />
+                                  {/* Remove individual image button (only show if more than 1 image) */}
+                                  {isEditMode && images.length > 1 && (
+                                    <button
+                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeImageFromArtItem(catIndex, itemIndex, imgIndex); }}
+                                      className="absolute bottom-2 right-2 bg-brand-red text-white px-2 py-1 rounded text-xs font-bold border-2 border-white z-40 shadow-sm cursor-pointer flex items-center gap-1"
+                                      type="button"
+                                    >
+                                      <Trash2 size={12} /> Remove
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Image counter indicator */}
+                            {hasMultipleImages && (
+                              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-bold z-30">
+                                {images.length} images • Scroll →
+                              </div>
+                            )}
+
+                            {/* Add image to gallery button */}
+                            {isEditMode && (
+                              <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); addImageToArtItem(catIndex, itemIndex); }}
+                                className="absolute top-2 left-2 bg-brand-green text-brand-dark px-2 py-1 rounded text-xs font-bold border-2 border-brand-dark z-40 shadow-sm cursor-pointer flex items-center gap-1 hover:scale-105 transition-transform"
+                                type="button"
+                              >
+                                <Plus size={12} /> Add to Gallery
+                              </button>
+                            )}
                           </div>
+
+                          {/* Title overlay */}
+                          <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center pb-6 transition-opacity duration-300 pointer-events-none ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                            <div className="pointer-events-auto px-4 text-center w-full">
+                              <EditableText initialText={`Artwork #${itemIndex + 1}`} storageKey={`art_desc_${item.id}`} isEditing={isEditMode} className="text-white font-black text-lg uppercase tracking-wider drop-shadow-md" />
+                            </div>
+                          </div>
+
+                          {/* Remove entire art item button */}
+                          {isEditMode && (
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeArtItem(catIndex, itemIndex); }} className="absolute top-2 right-2 bg-brand-red text-white p-1 rounded border-2 border-white z-40 shadow-sm cursor-pointer" type="button">
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
-                        {isEditMode && (
-                          <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeArtItem(catIndex, itemIndex); }} className="absolute top-2 right-2 bg-brand-red text-white p-1 rounded border-2 border-white z-40 shadow-sm cursor-pointer" type="button">
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                     {category.items.length === 0 && (
                       <div className="col-span-full py-12 text-center opacity-50 font-bold border-2 border-dashed border-brand-dark dark:border-brand-bg rounded-xl">No items yet. Click "Add Media" to start!</div>
                     )}

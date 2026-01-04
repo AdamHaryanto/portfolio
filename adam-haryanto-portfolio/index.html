@@ -74,6 +74,15 @@
       .dark .retro-scrollbar::-webkit-scrollbar-thumb {
         background-color: #FFF8E7;
       }
+      
+      /* Hide scrollbar for gallery */
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
 
       /* Custom Cool Title Animation */
       @keyframes retro-float {
