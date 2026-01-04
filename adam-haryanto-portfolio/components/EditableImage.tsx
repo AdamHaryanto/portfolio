@@ -99,8 +99,28 @@ const EditableImage: React.FC<EditableImageProps> = ({
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check if the file is a GIF - don't compress GIFs to preserve animation
+      const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+
+      if (isGif) {
+        // For GIF files, read directly without compression to preserve animation
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          setCurrentSrc(result);
+          try {
+            localStorage.setItem(`img_${storageKey}`, result);
+          } catch (e) {
+            console.error("Failed to save GIF to localStorage (likely too large)", e);
+            alert("GIF is too large to save locally. Try using a smaller GIF (under 2MB recommended) or use a URL instead.");
+          }
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      // For non-GIF images, compress as usual
       try {
-        // Compress the image before saving
         const compressedImage = await compressImage(file, 1200, 0.7);
         setCurrentSrc(compressedImage);
 
