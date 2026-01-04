@@ -192,7 +192,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   };
 
   const handleUrlInput = () => {
-    const url = prompt("Enter Image or Video URL (YouTube, Vimeo, Google Drive, MP4, etc):", currentSrc);
+    const url = prompt("Enter Image or Video URL (YouTube, Instagram, Google Drive, MP4, etc):", currentSrc);
     if (url !== null && url.trim() !== "") {
       saveMedia(url);
     }
@@ -252,6 +252,40 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
     return videoHints.some(hint => url.toLowerCase().includes(hint));
   };
 
+  // Instagram helpers
+  const isInstagram = (url: string) => url.includes('instagram.com');
+
+  const getInstagramPostId = (url: string): string | null => {
+    // Match patterns like:
+    // https://www.instagram.com/p/POST_ID/
+    // https://www.instagram.com/reel/REEL_ID/
+    // https://www.instagram.com/tv/TV_ID/
+
+    const patterns = [
+      /instagram\.com\/p\/([a-zA-Z0-9_-]+)/,      // /p/POST_ID
+      /instagram\.com\/reel\/([a-zA-Z0-9_-]+)/,   // /reel/REEL_ID
+      /instagram\.com\/tv\/([a-zA-Z0-9_-]+)/,     // /tv/TV_ID
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+
+  const getInstagramEmbed = (url: string): string => {
+    // Extract the path type (p, reel, or tv) and post ID
+    const pMatch = url.match(/instagram\.com\/(p|reel|tv)\/([a-zA-Z0-9_-]+)/);
+    if (pMatch) {
+      const [, type, postId] = pMatch;
+      return `https://www.instagram.com/${type}/${postId}/embed/`;
+    }
+    return url;
+  };
+
   const getYoutubeEmbed = (url: string) => {
     let videoId = "";
     if (url.includes('youtube.com/watch?v=')) {
@@ -284,7 +318,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
       const fileId = getGoogleDriveFileId(currentSrc);
       if (fileId) {
         return (
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
+          <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
             <iframe
               src={`https://drive.google.com/file/d/${fileId}/preview`}
               className="absolute inset-0 w-full h-full"
@@ -293,9 +327,36 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
               allowFullScreen
               style={{ border: 'none' }}
             />
+            {/* Overlay to hide Google Drive header with pop-out button */}
+            <div
+              className="absolute top-0 left-0 right-0 h-12 bg-black pointer-events-auto z-10"
+              style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 70%, rgba(0,0,0,0) 100%)' }}
+            />
+            {/* Block right-click context menu */}
+            <div
+              className="absolute inset-0 z-5"
+              onContextMenu={(e) => e.preventDefault()}
+              style={{ pointerEvents: 'none' }}
+            />
           </div>
         );
       }
+    }
+
+    if (isInstagram(currentSrc)) {
+      // Embed Instagram post/reel/tv
+      return (
+        <div className="relative w-full" style={{ paddingBottom: '125%' }}> {/* 4:5 aspect ratio for Instagram */}
+          <iframe
+            src={getInstagramEmbed(currentSrc)}
+            className="absolute inset-0 w-full h-full"
+            title={alt}
+            allowFullScreen
+            scrolling="no"
+            style={{ border: 'none', overflow: 'hidden' }}
+          />
+        </div>
+      );
     }
 
     if (isVideoFile(currentSrc)) {
@@ -340,7 +401,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
             <Link size={16} /> Set URL
           </button>
           <span className="text-white text-[10px] opacity-70 mt-1 px-4 text-center">
-            GIF • Google Drive • YouTube
+            GIF • Instagram • Google Drive • YouTube
           </span>
         </div>
       )}
