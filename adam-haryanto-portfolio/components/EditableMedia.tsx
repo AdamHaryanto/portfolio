@@ -318,7 +318,7 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
       const fileId = getGoogleDriveFileId(currentSrc);
       if (fileId) {
         return (
-          <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}> {/* 16:9 aspect ratio */}
             <iframe
               src={`https://drive.google.com/file/d/${fileId}/preview`}
               className="absolute inset-0 w-full h-full"
@@ -326,17 +326,6 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
               allow="autoplay; encrypted-media; fullscreen"
               allowFullScreen
               style={{ border: 'none' }}
-            />
-            {/* Overlay to hide Google Drive header with pop-out button */}
-            <div
-              className="absolute top-0 left-0 right-0 h-12 bg-black pointer-events-auto z-10"
-              style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.8) 70%, rgba(0,0,0,0) 100%)' }}
-            />
-            {/* Block right-click context menu */}
-            <div
-              className="absolute inset-0 z-5"
-              onContextMenu={(e) => e.preventDefault()}
-              style={{ pointerEvents: 'none' }}
             />
           </div>
         );

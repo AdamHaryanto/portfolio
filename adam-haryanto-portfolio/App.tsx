@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Download, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun } from 'lucide-react';
+import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun } from 'lucide-react';
 import Section from './components/Section';
 import Card from './components/Card';
 import Button from './components/Button';
@@ -270,6 +270,111 @@ function App() {
 
       window.location.reload();
     }
+  };
+
+  // Export all portfolio data as JSON file for permanent storage
+  const exportPortfolioData = () => {
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      version: "1.0",
+      data: {
+        skills: dynamicSkills,
+        projects: dynamicProjects,
+        experiences: dynamicExperiences,
+        certificates: dynamicCertificates,
+        artCategories: artCategories,
+        contactButtons: dynamicContactButtons,
+      },
+      // Also include any localStorage image data
+      images: {} as Record<string, string>,
+    };
+
+    // Collect all image data from localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('img_') || key.startsWith('media_'))) {
+        const value = localStorage.getItem(key);
+        if (value) {
+          exportData.images[key] = value;
+        }
+      }
+    }
+
+    // Create and download the JSON file
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `portfolio_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('Data portfolio berhasil di-export! File JSON telah diunduh.\n\nUntuk membuat perubahan permanen:\n1. Buka file JSON yang diunduh\n2. Copy isi data ke file constants.ts\n3. Re-deploy website Anda');
+  };
+
+  // Import portfolio data from JSON file
+  const importPortfolioData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target?.result as string);
+
+        if (!importedData.data) {
+          alert('Format file tidak valid!');
+          return;
+        }
+
+        if (window.confirm('Import data ini akan menimpa semua data saat ini. Lanjutkan?')) {
+          // Import main data
+          if (importedData.data.skills) {
+            setDynamicSkills(importedData.data.skills);
+            localStorage.setItem('user_skills', JSON.stringify(importedData.data.skills));
+          }
+          if (importedData.data.projects) {
+            setDynamicProjects(importedData.data.projects);
+            localStorage.setItem('user_projects', JSON.stringify(importedData.data.projects));
+          }
+          if (importedData.data.experiences) {
+            setDynamicExperiences(importedData.data.experiences);
+            localStorage.setItem('user_experiences', JSON.stringify(importedData.data.experiences));
+          }
+          if (importedData.data.certificates) {
+            setDynamicCertificates(importedData.data.certificates);
+            localStorage.setItem('user_certificates', JSON.stringify(importedData.data.certificates));
+          }
+          if (importedData.data.artCategories) {
+            setArtCategories(importedData.data.artCategories);
+            localStorage.setItem('user_art_categories', JSON.stringify(importedData.data.artCategories));
+          }
+          if (importedData.data.contactButtons) {
+            setDynamicContactButtons(importedData.data.contactButtons);
+            localStorage.setItem('user_contact_buttons', JSON.stringify(importedData.data.contactButtons));
+          }
+
+          // Import image data
+          if (importedData.images) {
+            Object.entries(importedData.images).forEach(([key, value]) => {
+              localStorage.setItem(key, value as string);
+            });
+          }
+
+          alert('Data berhasil diimport! Halaman akan dimuat ulang.');
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('Gagal mengimport data. Pastikan file JSON valid.');
+      }
+    };
+    reader.readAsText(file);
+
+    // Reset input so same file can be selected again
+    event.target.value = '';
   };
 
   // ... [Navigation Logic]
@@ -704,6 +809,13 @@ function App() {
 
               {isEditMode && (
                 <div className="flex items-center gap-2 ml-4 pl-4 border-l-2 border-brand-dark/20 dark:border-brand-bg/20">
+                  <button onClick={exportPortfolioData} className="p-2 bg-brand-blue text-white border-2 border-brand-dark hover:scale-105 rounded-full transition-all tooltip shadow-sm" title="Export Data (Backup)">
+                    <Download size={18} />
+                  </button>
+                  <label className="p-2 bg-brand-orange text-white border-2 border-brand-dark hover:scale-105 rounded-full transition-all tooltip shadow-sm cursor-pointer" title="Import Data">
+                    <Upload size={18} />
+                    <input type="file" accept=".json" onChange={importPortfolioData} className="hidden" />
+                  </label>
                   <button onClick={cancelEditMode} className="p-2 bg-brand-bg text-brand-red border-2 border-brand-red hover:bg-brand-red hover:text-white rounded-full transition-colors tooltip shadow-sm" title="Undo all changes (Cancel Session)">
                     <RotateCcw size={20} />
                   </button>
@@ -750,13 +862,24 @@ function App() {
                 <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Contact</a>
 
                 {isEditMode && (
-                  <div className="flex gap-2 pt-4">
-                    <button onClick={cancelEditMode} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-red border-2 border-brand-red rounded-lg py-2">
-                      <RotateCcw size={18} /> Cancel
-                    </button>
-                    <button onClick={handleFactoryReset} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-dark/50 border-2 border-brand-dark/20 rounded-lg py-2 text-xs">
-                      <AlertTriangle size={14} /> Factory Reset
-                    </button>
+                  <div className="flex flex-col gap-2 pt-4">
+                    <div className="flex gap-2">
+                      <button onClick={cancelEditMode} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-red border-2 border-brand-red rounded-lg py-2">
+                        <RotateCcw size={18} /> Cancel
+                      </button>
+                      <button onClick={handleFactoryReset} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-dark/50 border-2 border-brand-dark/20 rounded-lg py-2 text-xs">
+                        <AlertTriangle size={14} /> Factory Reset
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={exportPortfolioData} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-blue border-2 border-brand-blue rounded-lg py-2 text-sm">
+                        <Download size={16} /> Export Data
+                      </button>
+                      <label className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-green border-2 border-brand-green rounded-lg py-2 text-sm cursor-pointer">
+                        <Upload size={16} /> Import Data
+                        <input type="file" accept=".json" onChange={importPortfolioData} className="hidden" />
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
