@@ -1504,13 +1504,19 @@ export const SOCIAL_LINKS = {
                             )}
                           </div>
 
-                          {/* Title bar at bottom - NOT overlaying scroll area */}
-                          <div className={`bg-gradient-to-t from-black/90 to-black/60 px-4 py-3 ${isEditMode ? 'block' : 'absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300'}`}>
+                          {/* Title overlay with smooth gradient - from transparent to dark */}
+                          <div
+                            className={`absolute bottom-0 left-0 right-0 px-4 pb-4 pt-16 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-300`}
+                            style={{
+                              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.3) 60%, transparent 100%)'
+                            }}
+                          >
                             <EditableText
                               initialText={`Artwork #${itemIndex + 1}`}
                               storageKey={`art_desc_${item.id}`}
                               isEditing={isEditMode}
-                              className="text-white font-black text-lg uppercase tracking-wider drop-shadow-md block text-center"
+                              className="art-title text-white font-black uppercase tracking-wider drop-shadow-lg text-center"
+                              tag="div"
                             />
                           </div>
 
