@@ -1474,28 +1474,32 @@ export const SOCIAL_LINKS = {
                               ))}
                             </div>
 
-                            {/* Navigation arrows for horizontal scroll */}
-                            {hasMultipleImages && !isEditMode && (
+                            {/* Navigation arrows for horizontal scroll - visible in both modes */}
+                            {hasMultipleImages && (
                               <>
                                 <button
                                   onClick={(e) => {
                                     e.preventDefault();
+                                    e.stopPropagation();
                                     const gallery = document.getElementById(`gallery-${item.id}`);
                                     if (gallery) gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
                                   }}
-                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                                  className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                                   aria-label="Previous"
+                                  type="button"
                                 >
                                   <ChevronDown size={20} className="rotate-90" />
                                 </button>
                                 <button
                                   onClick={(e) => {
                                     e.preventDefault();
+                                    e.stopPropagation();
                                     const gallery = document.getElementById(`gallery-${item.id}`);
                                     if (gallery) gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
                                   }}
-                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                                  className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                                   aria-label="Next"
+                                  type="button"
                                 >
                                   <ChevronDown size={20} className="-rotate-90" />
                                 </button>
@@ -1526,8 +1530,8 @@ export const SOCIAL_LINKS = {
 
                           {/* Title overlay with smooth gradient - from transparent to dark */}
                           <div
-                            className={`absolute bottom-0 left-0 right-0 px-4 pb-4 pt-16 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity duration-300`}
-                            style={{
+                            className={`px-4 py-3 transition-opacity duration-300 ${isEditMode ? 'relative bg-gradient-to-t from-black/90 to-black/70' : 'absolute bottom-0 left-0 right-0 pt-12 opacity-0 group-hover:opacity-100'}`}
+                            style={isEditMode ? {} : {
                               background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.3) 60%, transparent 100%)'
                             }}
                           >
