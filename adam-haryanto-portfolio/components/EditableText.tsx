@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CUSTOM_TEXTS } from '../constants';
 
 interface EditableTextProps {
   initialText: string;
@@ -21,14 +22,23 @@ const EditableText: React.FC<EditableTextProps> = ({
 }) => {
   const [text, setText] = useState(initialText);
 
-  // Load from local storage on mount
+  // Load text with priority: localStorage > CUSTOM_TEXTS > initialText
   useEffect(() => {
-    const saved = localStorage.getItem(`text_${storageKey}`);
-    if (saved) {
-      setText(saved);
-    } else {
-      setText(initialText);
+    // Priority 1: Check localStorage (for current editing session)
+    const localSaved = localStorage.getItem(`text_${storageKey}`);
+    if (localSaved) {
+      setText(localSaved);
+      return;
     }
+
+    // Priority 2: Check CUSTOM_TEXTS from constants.ts (for deployed custom text)
+    if (CUSTOM_TEXTS && CUSTOM_TEXTS[storageKey]) {
+      setText(CUSTOM_TEXTS[storageKey]);
+      return;
+    }
+
+    // Priority 3: Use initial text from props
+    setText(initialText);
   }, [storageKey, initialText]);
 
   // Listen for reset (Factory Reset)
@@ -47,7 +57,13 @@ const EditableText: React.FC<EditableTextProps> = ({
       // Upon revert, the App.tsx has already restored localStorage to the backup state.
       // We just need to re-read it.
       const saved = localStorage.getItem(`text_${storageKey}`);
-      setText(saved || initialText);
+      if (saved) {
+        setText(saved);
+      } else if (CUSTOM_TEXTS && CUSTOM_TEXTS[storageKey]) {
+        setText(CUSTOM_TEXTS[storageKey]);
+      } else {
+        setText(initialText);
+      }
     };
     window.addEventListener('revert-data', handleRevert);
     return () => window.removeEventListener('revert-data', handleRevert);
@@ -62,7 +78,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   if (isEditing) {
     const widthClass = fullWidth ? 'w-full' : 'w-auto min-w-[20px]';
     const inputClasses = `bg-white/50 dark:bg-gray-800 border-2 border-brand-orange border-dashed rounded px-1 ${widthClass} focus:outline-none focus:bg-white dark:focus:bg-gray-900 text-inherit font-inherit dark:text-white ${className}`;
-    
+
     if (multiline) {
       return (
         <textarea

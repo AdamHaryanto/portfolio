@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload } from 'lucide-react';
+import { CUSTOM_IMAGES } from '../constants';
 
 interface EditableImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   storageKey: string;
@@ -19,15 +20,24 @@ const EditableImage: React.FC<EditableImageProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string | undefined>(src as string | undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved image from localStorage on mount
+  // Load saved image with priority: localStorage > CUSTOM_IMAGES > src prop
   useEffect(() => {
     try {
+      // Priority 1: Check localStorage (for current editing session)
       const saved = localStorage.getItem(`img_${storageKey}`);
       if (saved) {
         setCurrentSrc(saved);
-      } else {
-        setCurrentSrc(src as string | undefined);
+        return;
       }
+
+      // Priority 2: Check CUSTOM_IMAGES from constants.ts (for deployed custom images)
+      if (CUSTOM_IMAGES && CUSTOM_IMAGES[storageKey]) {
+        setCurrentSrc(CUSTOM_IMAGES[storageKey]);
+        return;
+      }
+
+      // Priority 3: Use src from props
+      setCurrentSrc(src as string | undefined);
     } catch (e) {
       console.error("Failed to access localStorage", e);
     }
@@ -47,7 +57,13 @@ const EditableImage: React.FC<EditableImageProps> = ({
   useEffect(() => {
     const handleRevert = () => {
       const saved = localStorage.getItem(`img_${storageKey}`);
-      setCurrentSrc(saved || src as string | undefined);
+      if (saved) {
+        setCurrentSrc(saved);
+      } else if (CUSTOM_IMAGES && CUSTOM_IMAGES[storageKey]) {
+        setCurrentSrc(CUSTOM_IMAGES[storageKey]);
+      } else {
+        setCurrentSrc(src as string | undefined);
+      }
     };
     window.addEventListener('revert-data', handleRevert);
     return () => window.removeEventListener('revert-data', handleRevert);

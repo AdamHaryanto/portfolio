@@ -316,6 +316,30 @@ function App() {
 
   // Export as ready-to-use constants.ts file
   const exportAsConstantsFile = () => {
+    // Collect all custom text from localStorage
+    const customTexts: Record<string, string> = {};
+    const customImages: Record<string, string> = {};
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        if (key.startsWith('text_')) {
+          const storageKey = key.replace('text_', '');
+          const value = localStorage.getItem(key);
+          if (value) {
+            customTexts[storageKey] = value;
+          }
+        }
+        if (key.startsWith('img_')) {
+          const storageKey = key.replace('img_', '');
+          const value = localStorage.getItem(key);
+          if (value) {
+            customImages[storageKey] = value;
+          }
+        }
+      }
+    }
+
     // Generate TypeScript code for constants.ts
     const tsCode = `// Auto-generated from portfolio export on ${new Date().toISOString()}
 // Replace your existing constants.ts with this file to make changes permanent
@@ -341,6 +365,16 @@ export const PORTFOLIO_2D: string[] = ${JSON.stringify(
       artCategories.find(c => c.id === '2d')?.items.map(i => i.url) || [],
       null, 2
     )};
+
+// ==================================================
+// CUSTOM TEXT CONTENT - Edited via Edit Mode
+// ==================================================
+export const CUSTOM_TEXTS: Record<string, string> = ${JSON.stringify(customTexts, null, 2)};
+
+// ==================================================
+// CUSTOM IMAGES - Uploaded via Edit Mode
+// ==================================================
+export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(customImages, null, 2)};
 
 // Keep your existing EDUCATION and SOCIAL_LINKS
 export const EDUCATION = [
@@ -383,8 +417,16 @@ export const SOCIAL_LINKS = {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
+    const textCount = Object.keys(customTexts).length;
+    const imageCount = Object.keys(customImages).length;
+
     alert(
       '✅ File constants.ts berhasil di-generate!\n\n' +
+      `📊 Data yang di-export:\n` +
+      `   • ${textCount} teks kustom\n` +
+      `   • ${imageCount} gambar kustom\n` +
+      `   • ${dynamicProjects.length} project\n` +
+      `   • ${dynamicExperiences.length} experience\n\n` +
       '📋 LANGKAH UNTUK MEMBUAT PERUBAHAN PERMANEN:\n\n' +
       '1. Buka file "constants_[tanggal].ts" yang baru diunduh\n' +
       '2. Copy SELURUH isi file tersebut\n' +
