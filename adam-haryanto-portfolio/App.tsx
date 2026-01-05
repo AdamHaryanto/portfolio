@@ -1418,10 +1418,16 @@ export const SOCIAL_LINKS = {
                           {/* Gallery Container with Horizontal Scroll */}
                           <div className="relative">
                             <div
+                              id={`gallery-${item.id}`}
                               className={`flex overflow-x-auto snap-x snap-mandatory scrollbar-hide ${hasMultipleImages ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+                              style={{
+                                scrollbarWidth: 'none',
+                                msOverflowStyle: 'none',
+                                WebkitOverflowScrolling: 'touch',
+                              }}
                               onWheel={(e) => {
-                                if (hasMultipleImages && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                                if (hasMultipleImages) {
+                                  e.preventDefault();
                                   e.currentTarget.scrollLeft += e.deltaY;
                                 }
                               }}
@@ -1441,7 +1447,7 @@ export const SOCIAL_LINKS = {
                                   {isEditMode && images.length > 1 && (
                                     <button
                                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeImageFromArtItem(catIndex, itemIndex, imgIndex); }}
-                                      className="absolute bottom-2 right-2 bg-brand-red text-white px-2 py-1 rounded text-xs font-bold border-2 border-white z-40 shadow-sm cursor-pointer flex items-center gap-1"
+                                      className="absolute bottom-12 right-2 bg-brand-red text-white px-2 py-1 rounded text-xs font-bold border-2 border-white z-40 shadow-sm cursor-pointer flex items-center gap-1"
                                       type="button"
                                     >
                                       <Trash2 size={12} /> Remove
@@ -1451,9 +1457,37 @@ export const SOCIAL_LINKS = {
                               ))}
                             </div>
 
+                            {/* Navigation arrows for horizontal scroll */}
+                            {hasMultipleImages && !isEditMode && (
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const gallery = document.getElementById(`gallery-${item.id}`);
+                                    if (gallery) gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
+                                  }}
+                                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                                  aria-label="Previous"
+                                >
+                                  <ChevronDown size={20} className="rotate-90" />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    const gallery = document.getElementById(`gallery-${item.id}`);
+                                    if (gallery) gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
+                                  }}
+                                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-30"
+                                  aria-label="Next"
+                                >
+                                  <ChevronDown size={20} className="-rotate-90" />
+                                </button>
+                              </>
+                            )}
+
                             {/* Image counter indicator */}
                             {hasMultipleImages && (
-                              <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-bold z-30">
+                              <div className="absolute bottom-12 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-bold z-30">
                                 {images.length} images • Scroll →
                               </div>
                             )}
@@ -1470,11 +1504,14 @@ export const SOCIAL_LINKS = {
                             )}
                           </div>
 
-                          {/* Title overlay */}
-                          <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center pb-6 transition-opacity duration-300 pointer-events-none ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                            <div className="pointer-events-auto px-4 text-center w-full">
-                              <EditableText initialText={`Artwork #${itemIndex + 1}`} storageKey={`art_desc_${item.id}`} isEditing={isEditMode} className="text-white font-black text-lg uppercase tracking-wider drop-shadow-md" />
-                            </div>
+                          {/* Title bar at bottom - NOT overlaying scroll area */}
+                          <div className={`bg-gradient-to-t from-black/90 to-black/60 px-4 py-3 ${isEditMode ? 'block' : 'absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300'}`}>
+                            <EditableText
+                              initialText={`Artwork #${itemIndex + 1}`}
+                              storageKey={`art_desc_${item.id}`}
+                              isEditing={isEditMode}
+                              className="text-white font-black text-lg uppercase tracking-wider drop-shadow-md block text-center"
+                            />
                           </div>
 
                           {/* Remove entire art item button */}
