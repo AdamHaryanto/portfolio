@@ -1072,17 +1072,24 @@ export const SOCIAL_LINKS = {
           <div className="space-y-8">
             {EDUCATION.map((edu, index) => (
               <Card key={index} variant={index === 0 ? 'blue' : 'orange'} className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 border-4 border-brand-dark rounded-lg overflow-hidden bg-white">
-                  <EditableImage src={edu.image || "https://picsum.photos/seed/edu/200/200"} alt={edu.institution} storageKey={`edu_img_${index}`} isEditing={isEditMode} className="w-full h-full object-cover" />
+                <div className="w-24 h-auto md:w-32 flex-shrink-0 border-4 border-brand-dark rounded-lg overflow-hidden bg-white">
+                  <EditableImage
+                    src={edu.image || "https://picsum.photos/seed/edu/200/200"}
+                    alt={edu.institution}
+                    storageKey={`edu_img_${index}`}
+                    isEditing={isEditMode}
+                    className="w-full h-auto object-contain"
+                    wrapperClassName="w-full h-auto"
+                  />
                 </div>
                 <div className="flex-1 text-brand-dark">
                   <EditableText initialText={edu.institution} storageKey={`edu_inst_${index}`} isEditing={isEditMode} tag="h3" className="text-2xl md:text-3xl font-black mb-2" />
-                  <p className="text-xl font-bold opacity-80 mb-4">{edu.degree}</p>
+                  <EditableText initialText={edu.degree} storageKey={`edu_degree_${index}`} isEditing={isEditMode} tag="p" className="text-xl font-bold opacity-80 mb-4" />
                   <EditableText initialText={edu.description} storageKey={`edu_desc_${index}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium leading-relaxed" />
                 </div>
                 <div className="bg-brand-dark/10 p-6 rounded-xl border-2 border-brand-dark min-w-[150px] text-center text-brand-dark">
-                  <span className="block text-4xl font-black">{edu.score}</span>
-                  <span className="text-xs font-bold uppercase tracking-wider opacity-70">{edu.scoreLabel}</span>
+                  <EditableText initialText={edu.score} storageKey={`edu_score_${index}`} isEditing={isEditMode} tag="span" className="block text-4xl font-black" />
+                  <EditableText initialText={edu.scoreLabel} storageKey={`edu_scorelabel_${index}`} isEditing={isEditMode} tag="span" className="text-xs font-bold uppercase tracking-wider opacity-70" />
                 </div>
               </Card>
             ))}
@@ -1431,6 +1438,16 @@ export const SOCIAL_LINKS = {
                                   e.currentTarget.scrollLeft += e.deltaY;
                                 }
                               }}
+                              onScroll={(e) => {
+                                if (hasMultipleImages) {
+                                  const target = e.currentTarget;
+                                  const currentIndex = Math.round(target.scrollLeft / target.clientWidth) + 1;
+                                  const indicator = document.getElementById(`indicator-${item.id}`);
+                                  if (indicator) {
+                                    indicator.textContent = `${currentIndex}/${images.length}`;
+                                  }
+                                }
+                              }}
                             >
                               {images.map((imgUrl, imgIndex) => (
                                 <div key={imgIndex} className="flex-shrink-0 w-full snap-center relative">
@@ -1485,10 +1502,13 @@ export const SOCIAL_LINKS = {
                               </>
                             )}
 
-                            {/* Image counter indicator */}
+                            {/* Image counter indicator - shows current/total */}
                             {hasMultipleImages && (
-                              <div className="absolute bottom-12 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-bold z-30">
-                                {images.length} images • Scroll →
+                              <div
+                                id={`indicator-${item.id}`}
+                                className="absolute bottom-12 left-2 bg-black/70 text-white text-sm px-3 py-1 rounded-full font-bold z-30"
+                              >
+                                1/{images.length}
                               </div>
                             )}
 
