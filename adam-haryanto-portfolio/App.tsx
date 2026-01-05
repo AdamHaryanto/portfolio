@@ -1658,12 +1658,12 @@ export const SOCIAL_LINKS = {
                         </Card>
                       ) : (
                         <a href={btn.url} target="_blank" rel="noreferrer">
-                          <Card variant={btn.variant} className={`p-4 flex items-center justify-between ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
-                            <div className="flex items-center gap-4">
+                          <Card variant={btn.variant} className={`p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
+                            <div className="flex items-center gap-4 flex-shrink-0">
                               {renderIcon(btn.icon)}
                               <span className="font-bold text-lg">{btn.label}</span>
                             </div>
-                            <span className="font-black text-xs md:text-sm truncate max-w-[150px]">{btn.displayText}</span>
+                            <span className="font-black text-xs md:text-sm sm:text-right">{btn.displayText}</span>
                           </Card>
                         </a>
                       )}
