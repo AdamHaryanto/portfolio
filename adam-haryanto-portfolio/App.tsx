@@ -314,6 +314,87 @@ function App() {
     alert('Data portfolio berhasil di-export! File JSON telah diunduh.\n\nUntuk membuat perubahan permanen:\n1. Buka file JSON yang diunduh\n2. Copy isi data ke file constants.ts\n3. Re-deploy website Anda');
   };
 
+  // Export as ready-to-use constants.ts file
+  const exportAsConstantsFile = () => {
+    // Generate TypeScript code for constants.ts
+    const tsCode = `// Auto-generated from portfolio export on ${new Date().toISOString()}
+// Replace your existing constants.ts with this file to make changes permanent
+
+import { SkillCategory, Project, Experience, Certificate, ContactButton } from './types';
+
+export const SKILL_CATEGORIES: SkillCategory[] = ${JSON.stringify(dynamicSkills, null, 2)};
+
+export const PROJECTS: Project[] = ${JSON.stringify(dynamicProjects, null, 2)};
+
+export const EXPERIENCES: Experience[] = ${JSON.stringify(dynamicExperiences, null, 2)};
+
+export const CERTIFICATES: Certificate[] = ${JSON.stringify(dynamicCertificates, null, 2)};
+
+export const CONTACT_BUTTONS: ContactButton[] = ${JSON.stringify(dynamicContactButtons, null, 2)};
+
+export const PORTFOLIO_3D: string[] = ${JSON.stringify(
+      artCategories.find(c => c.id === '3d')?.items.map(i => i.url) || [],
+      null, 2
+    )};
+
+export const PORTFOLIO_2D: string[] = ${JSON.stringify(
+      artCategories.find(c => c.id === '2d')?.items.map(i => i.url) || [],
+      null, 2
+    )};
+
+// Keep your existing EDUCATION and SOCIAL_LINKS
+export const EDUCATION = [
+  {
+    institution: "Universitas Brawijaya",
+    degree: "S1 Teknik Elektro",
+    description: "Aktif dalam komunitas game development.",
+    score: "3.5+",
+    scoreLabel: "GPA",
+    image: "https://picsum.photos/seed/ub/200/200"
+  },
+  {
+    institution: "SMAK Cor Jesu Malang",
+    degree: "IPA",
+    description: "Fokus pada sains dan teknologi.",
+    score: "85+",
+    scoreLabel: "Avg Score",
+    image: "https://picsum.photos/seed/smak/200/200"
+  }
+];
+
+export const SOCIAL_LINKS = {
+  instagram: "https://instagram.com/adamharyanto",
+  linkedin: "https://linkedin.com/in/adamharyanto",
+  github: "https://github.com/adamharyanto",
+  itch: "https://adamharyanto.itch.io",
+  email: "adamharyanto@email.com",
+  phone: "+62 812 3456 7890"
+};
+`;
+
+    // Download the TypeScript file
+    const blob = new Blob([tsCode], { type: 'text/typescript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `constants_${new Date().toISOString().split('T')[0]}.ts`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert(
+      '✅ File constants.ts berhasil di-generate!\n\n' +
+      '📋 LANGKAH UNTUK MEMBUAT PERUBAHAN PERMANEN:\n\n' +
+      '1. Buka file "constants_[tanggal].ts" yang baru diunduh\n' +
+      '2. Copy SELURUH isi file tersebut\n' +
+      '3. Buka file "constants.ts" di folder proyek Anda\n' +
+      '4. Replace semua isi dengan yang baru\n' +
+      '5. Deploy ulang website Anda\n\n' +
+      '🎉 Setelah deploy, perubahan akan terlihat oleh semua orang!'
+    );
+  };
+
   // Import portfolio data from JSON file
   const importPortfolioData = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -809,7 +890,10 @@ function App() {
 
               {isEditMode && (
                 <div className="flex items-center gap-2 ml-4 pl-4 border-l-2 border-brand-dark/20 dark:border-brand-bg/20">
-                  <button onClick={exportPortfolioData} className="p-2 bg-brand-blue text-white border-2 border-brand-dark hover:scale-105 rounded-full transition-all tooltip shadow-sm" title="Export Data (Backup)">
+                  <button onClick={exportAsConstantsFile} className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-green text-white border-2 border-brand-dark hover:scale-105 rounded-full transition-all shadow-sm font-bold text-sm" title="Publish - Generate constants.ts untuk deploy">
+                    <Upload size={16} /> Publish
+                  </button>
+                  <button onClick={exportPortfolioData} className="p-2 bg-brand-blue text-white border-2 border-brand-dark hover:scale-105 rounded-full transition-all tooltip shadow-sm" title="Export Data (JSON Backup)">
                     <Download size={18} />
                   </button>
                   <label className="p-2 bg-brand-orange text-white border-2 border-brand-dark hover:scale-105 rounded-full transition-all tooltip shadow-sm cursor-pointer" title="Import Data">
@@ -819,7 +903,7 @@ function App() {
                   <button onClick={cancelEditMode} className="p-2 bg-brand-bg text-brand-red border-2 border-brand-red hover:bg-brand-red hover:text-white rounded-full transition-colors tooltip shadow-sm" title="Undo all changes (Cancel Session)">
                     <RotateCcw size={20} />
                   </button>
-                  <button onClick={finishEditMode} className="flex items-center gap-2 px-3 py-1.5 rounded-full font-bold border-2 transition-all bg-brand-green text-white border-brand-dark shadow-retro-sm">
+                  <button onClick={finishEditMode} className="flex items-center gap-2 px-3 py-1.5 rounded-full font-bold border-2 transition-all bg-brand-dark text-white border-brand-dark shadow-retro-sm" title="Selesai Edit">
                     <Check size={16} /> <span className="text-sm">Done</span>
                   </button>
                 </div>
@@ -863,6 +947,9 @@ function App() {
 
                 {isEditMode && (
                   <div className="flex flex-col gap-2 pt-4">
+                    <button onClick={exportAsConstantsFile} className="flex justify-center items-center gap-2 font-bold text-white bg-brand-green border-2 border-brand-dark rounded-lg py-3 text-base">
+                      <Upload size={18} /> 🚀 Publish (Deploy Perubahan)
+                    </button>
                     <div className="flex gap-2">
                       <button onClick={cancelEditMode} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-red border-2 border-brand-red rounded-lg py-2">
                         <RotateCcw size={18} /> Cancel
@@ -873,10 +960,10 @@ function App() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={exportPortfolioData} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-blue border-2 border-brand-blue rounded-lg py-2 text-sm">
-                        <Download size={16} /> Export Data
+                        <Download size={16} /> Backup JSON
                       </button>
-                      <label className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-green border-2 border-brand-green rounded-lg py-2 text-sm cursor-pointer">
-                        <Upload size={16} /> Import Data
+                      <label className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-orange border-2 border-brand-orange rounded-lg py-2 text-sm cursor-pointer">
+                        <Upload size={16} /> Import
                         <input type="file" accept=".json" onChange={importPortfolioData} className="hidden" />
                       </label>
                     </div>
