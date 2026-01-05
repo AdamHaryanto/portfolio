@@ -1073,7 +1073,7 @@ export const SOCIAL_LINKS = {
             {EDUCATION.map((edu, index) => (
               <Card key={index} variant={index === 0 ? 'blue' : 'orange'} className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
                 <div className="w-24 h-auto md:w-32 flex-shrink-0 border-4 border-brand-dark rounded-lg overflow-hidden bg-white">
-                  <EditableImage
+                  <EditableMedia
                     src={edu.image || "https://picsum.photos/seed/edu/200/200"}
                     alt={edu.institution}
                     storageKey={`edu_img_${index}`}
@@ -1102,7 +1102,7 @@ export const SOCIAL_LINKS = {
               <div key={exp.id} className="relative group/exp">
                 <Card variant="white" className="flex flex-col h-full" noShadow={false}>
                   <div className="w-full h-48 flex-shrink-0 relative group">
-                    <EditableImage src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
+                    <EditableMedia src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white dark:to-brand-dark-bg pointer-events-none" />
                   </div>
                   <div className="p-6 md:p-8 flex flex-col flex-grow text-brand-dark dark:text-brand-bg">
