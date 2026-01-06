@@ -704,6 +704,12 @@ export const SOCIAL_LINKS = {
     setDynamicCertificates(updated);
     save('user_certificates', updated);
   };
+  const updateCertificateImage = (index: number, newUrl: string) => {
+    const updated = [...dynamicCertificates];
+    updated[index] = { ...updated[index], image: newUrl };
+    setDynamicCertificates(updated);
+    save('user_certificates', updated);
+  };
   const addArtCategory = () => {
     const newCat: ArtCategory = { id: `cat_${Date.now()}`, title: "New Portfolio Group", items: [] };
     setArtCategories(prev => {
@@ -939,7 +945,8 @@ export const SOCIAL_LINKS = {
                 {(portfolioDropdownOpen) && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-brand-dark border-2 border-brand-dark dark:border-brand-bg shadow-retro dark:shadow-retro-light rounded-lg overflow-hidden flex flex-col z-50">
                     <a href="#portfolio" onClick={(e) => scrollToSection(e, '#portfolio')} className="px-4 py-2 font-bold text-brand-dark dark:text-brand-bg hover:bg-brand-orange hover:text-white border-b-2 border-brand-dark/10 dark:border-brand-bg/10">Project Portfolio</a>
-                    <a href="#art-portfolio" onClick={(e) => scrollToSection(e, '#art-portfolio')} className="px-4 py-2 font-bold text-brand-dark dark:text-brand-bg hover:bg-brand-green hover:text-white">Art Portfolio</a>
+                    <a href="#art-portfolio" onClick={(e) => scrollToSection(e, '#art-portfolio')} className="px-4 py-2 font-bold text-brand-dark dark:text-brand-bg hover:bg-brand-green hover:text-white border-b-2 border-brand-dark/10 dark:border-brand-bg/10">Art Portfolio</a>
+                    <a href="#certificates" onClick={(e) => scrollToSection(e, '#certificates')} className="px-4 py-2 font-bold text-brand-dark dark:text-brand-bg hover:bg-brand-yellow hover:text-brand-dark">Certificates</a>
                   </div>
                 )}
               </div>
@@ -1008,6 +1015,7 @@ export const SOCIAL_LINKS = {
                   <div className="pl-4 flex flex-col gap-2">
                     <a href="#portfolio" onClick={(e) => scrollToSection(e, '#portfolio')} className="text-brand-dark/80 dark:text-brand-bg/80 font-bold">Project Portfolio</a>
                     <a href="#art-portfolio" onClick={(e) => scrollToSection(e, '#art-portfolio')} className="text-brand-dark/80 dark:text-brand-bg/80 font-bold">Art Portfolio</a>
+                    <a href="#certificates" onClick={(e) => scrollToSection(e, '#certificates')} className="text-brand-dark/80 dark:text-brand-bg/80 font-bold">Certificates</a>
                   </div>
                 </div>
                 <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Contact</a>
@@ -1600,7 +1608,15 @@ export const SOCIAL_LINKS = {
               <div key={cert.id} className="relative group/cert">
                 <Card variant="white" className="p-4 group cursor-pointer hover:-translate-y-1 transition-transform" noShadow={false}>
                   <div className="border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-4 relative" onClick={() => setSelectedCertificate(cert)}>
-                    <EditableImage src={cert.image} alt={cert.title} className="w-full h-auto object-contain grayscale group-hover:grayscale-0 transition-all" storageKey={`cert_img_${cert.id}`} isEditing={isEditMode} wrapperClassName="w-full" />
+                    <EditableMedia
+                      src={cert.image}
+                      alt={cert.title}
+                      className="w-full h-auto object-contain grayscale group-hover:grayscale-0 transition-all"
+                      storageKey={`cert_img_${cert.id}`}
+                      isEditing={isEditMode}
+                      wrapperClassName="w-full"
+                      onUpdate={(newUrl) => updateCertificateImage(index, newUrl)}
+                    />
                   </div>
                   <div className={`p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center font-bold text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'}`}>
                     <EditableText initialText={cert.title} storageKey={`cert_title_${cert.id}`} isEditing={isEditMode} tag="span" />
