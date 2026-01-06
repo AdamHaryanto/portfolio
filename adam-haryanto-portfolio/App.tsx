@@ -316,13 +316,14 @@ function App() {
 
   // Export as ready-to-use constants.ts file
   const exportAsConstantsFile = () => {
-    // Collect all custom text from localStorage
+    // Collect all custom text and images from localStorage
     const customTexts: Record<string, string> = {};
     const customImages: Record<string, string> = {};
 
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key) {
+        // Collect text edits (from EditableText)
         if (key.startsWith('text_')) {
           const storageKey = key.replace('text_', '');
           const value = localStorage.getItem(key);
@@ -330,8 +331,17 @@ function App() {
             customTexts[storageKey] = value;
           }
         }
+        // Collect image edits from EditableImage (img_ prefix)
         if (key.startsWith('img_')) {
           const storageKey = key.replace('img_', '');
+          const value = localStorage.getItem(key);
+          if (value) {
+            customImages[storageKey] = value;
+          }
+        }
+        // Collect media edits from EditableMedia (media_ prefix)
+        if (key.startsWith('media_')) {
+          const storageKey = key.replace('media_', '');
           const value = localStorage.getItem(key);
           if (value) {
             customImages[storageKey] = value;

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Link, Film, Image as ImageIcon } from 'lucide-react';
+import { CUSTOM_IMAGES } from '../constants';
 
 interface EditableMediaProps {
   src: string;
@@ -23,16 +24,26 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   const [currentSrc, setCurrentSrc] = useState<string>(src);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved media from localStorage on mount
+  // Load saved media with priority: localStorage > CUSTOM_IMAGES > src prop
   useEffect(() => {
     try {
+      // Priority 1: Check localStorage (for current editing session)
       const saved = localStorage.getItem(`media_${storageKey}`);
       if (saved) {
         setCurrentSrc(saved);
         if (onUpdate) onUpdate(saved);
-      } else {
-        setCurrentSrc(src);
+        return;
       }
+
+      // Priority 2: Check CUSTOM_IMAGES from constants.ts (for deployed custom media)
+      if (CUSTOM_IMAGES && CUSTOM_IMAGES[storageKey]) {
+        setCurrentSrc(CUSTOM_IMAGES[storageKey]);
+        if (onUpdate) onUpdate(CUSTOM_IMAGES[storageKey]);
+        return;
+      }
+
+      // Priority 3: Use src from props
+      setCurrentSrc(src);
     } catch (e) {
       console.error("Failed to access localStorage", e);
     }
@@ -53,8 +64,16 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
   useEffect(() => {
     const handleRevert = () => {
       const saved = localStorage.getItem(`media_${storageKey}`);
-      setCurrentSrc(saved || src);
-      if (onUpdate) onUpdate(saved || src);
+      if (saved) {
+        setCurrentSrc(saved);
+        if (onUpdate) onUpdate(saved);
+      } else if (CUSTOM_IMAGES && CUSTOM_IMAGES[storageKey]) {
+        setCurrentSrc(CUSTOM_IMAGES[storageKey]);
+        if (onUpdate) onUpdate(CUSTOM_IMAGES[storageKey]);
+      } else {
+        setCurrentSrc(src);
+        if (onUpdate) onUpdate(src);
+      }
     };
     window.addEventListener('revert-data', handleRevert);
     return () => window.removeEventListener('revert-data', handleRevert);
