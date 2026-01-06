@@ -1693,7 +1693,11 @@ export const SOCIAL_LINKS = {
                     <span className="font-bold">Issuer: </span>
                     <EditableText initialText={cert.issuer} storageKey={`cert_iss_${cert.id}`} isEditing={isEditMode} tag="span" />
                     <span className="mx-2">|</span>
-                    <EditableText initialText={cert.date} storageKey={`cert_date_${cert.id}`} isEditing={isEditMode} tag="span" />
+                    {isEditMode ? (
+                      <EditableText initialText={cert.date} storageKey={`cert_date_${cert.id}`} isEditing={isEditMode} tag="span" />
+                    ) : (
+                      <span className="font-bold text-brand-blue hover:text-brand-dark transition-colors">Click For More Details</span>
+                    )}
                   </div>
                 </Card>
                 {isEditMode && (
@@ -1720,66 +1724,68 @@ export const SOCIAL_LINKS = {
           const currentCert = certIndex >= 0 ? dynamicCertificates[certIndex] : selectedCertificate;
           return (
             <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedCertificate(null)}>
-              <div className="bg-brand-bg dark:bg-brand-dark-bg p-2 rounded-xl border-4 border-brand-dark dark:border-brand-bg max-w-4xl w-full shadow-retro dark:shadow-retro-light relative animate-bounce-in max-h-[90vh] overflow-y-auto retro-scrollbar" onClick={e => e.stopPropagation()}>
-                <button onClick={() => setSelectedCertificate(null)} className="absolute -top-4 -right-4 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light hover:scale-110 transition-transform z-50">
+              <div className="relative max-w-4xl w-full animate-bounce-in" onClick={e => e.stopPropagation()}>
+                <button onClick={() => setSelectedCertificate(null)} className="absolute -top-5 -right-2 md:-right-5 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light hover:scale-110 transition-transform z-50">
                   <X size={24} />
                 </button>
 
-                <div className="flex flex-col gap-4 p-2">
-                  <div className="font-black text-2xl md:text-3xl text-center text-brand-dark dark:text-brand-bg p-2 border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20">
-                    <EditableText initialText={currentCert.title} storageKey={`cert_title_${currentCert.id}`} isEditing={isEditMode} tag="span" />
-                  </div>
+                <div className="bg-brand-bg dark:bg-brand-dark-bg p-2 rounded-xl border-4 border-brand-dark dark:border-brand-bg w-full shadow-retro dark:shadow-retro-light max-h-[85vh] md:max-h-[90vh] overflow-y-auto retro-scrollbar">
+                  <div className="flex flex-col gap-4 p-2">
+                    <div className="font-black text-2xl md:text-3xl text-center text-brand-dark dark:text-brand-bg p-2 border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20">
+                      <EditableText initialText={currentCert.title} storageKey={`cert_title_${currentCert.id}`} isEditing={isEditMode} tag="span" />
+                    </div>
 
-                  {/* Gallery */}
-                  <div className="space-y-4">
-                    {currentCert.urls?.map((url, imgIdx) => (
-                      <div key={imgIdx} className="relative group border-4 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
-                        <EditableMedia
-                          src={url}
-                          alt={`${currentCert.title} - ${imgIdx + 1}`}
-                          className="w-full h-auto object-contain"
-                          wrapperClassName="w-full h-auto"
-                          storageKey={`cert_${currentCert.id}_img_${imgIdx}`}
-                          isEditing={isEditMode}
-                          onUpdate={(newUrl) => certIndex >= 0 && updateCertificateImageAtIndex(certIndex, imgIdx, newUrl)}
-                        />
-                        {isEditMode && currentCert.urls && currentCert.urls.length > 1 && (
-                          <button
-                            onClick={() => certIndex >= 0 && removeCertificateImage(certIndex, imgIdx)}
-                            className="absolute top-2 right-2 bg-brand-red text-white p-2 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform z-40"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                    {isEditMode && certIndex >= 0 && (
-                      <button onClick={() => addCertificateImage(certIndex)} className="w-full py-4 border-2 border-dashed border-brand-dark dark:border-brand-bg rounded-lg flex items-center justify-center gap-2 font-bold text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:text-brand-dark dark:hover:text-brand-bg transition-all">
-                        <Plus size={20} /> Add Another Image
-                      </button>
-                    )}
-                  </div>
+                    {/* Gallery */}
+                    <div className="space-y-4">
+                      {currentCert.urls?.map((url, imgIdx) => (
+                        <div key={imgIdx} className="relative group border-4 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
+                          <EditableMedia
+                            src={url}
+                            alt={`${currentCert.title} - ${imgIdx + 1}`}
+                            className="w-full h-auto object-contain"
+                            wrapperClassName="w-full h-auto"
+                            storageKey={`cert_${currentCert.id}_img_${imgIdx}`}
+                            isEditing={isEditMode}
+                            onUpdate={(newUrl) => certIndex >= 0 && updateCertificateImageAtIndex(certIndex, imgIdx, newUrl)}
+                          />
+                          {isEditMode && currentCert.urls && currentCert.urls.length > 1 && (
+                            <button
+                              onClick={() => certIndex >= 0 && removeCertificateImage(certIndex, imgIdx)}
+                              className="absolute top-2 right-2 bg-brand-red text-white p-2 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform z-40"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {isEditMode && certIndex >= 0 && (
+                        <button onClick={() => addCertificateImage(certIndex)} className="w-full py-4 border-2 border-dashed border-brand-dark dark:border-brand-bg rounded-lg flex items-center justify-center gap-2 font-bold text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:text-brand-dark dark:hover:text-brand-bg transition-all">
+                          <Plus size={20} /> Add Another Image
+                        </button>
+                      )}
+                    </div>
 
-                  <div className="p-4 bg-brand-dark/5 dark:bg-white/5 rounded-xl border-2 border-brand-dark/10 dark:border-brand-bg/10">
-                    <div className="flex flex-col gap-2">
-                      <div className="text-sm font-bold opacity-70 uppercase tracking-widest text-brand-dark dark:text-brand-bg">Details</div>
-                      <div className="font-medium text-brand-dark dark:text-brand-bg">
-                        <span className="font-bold">Issued by: </span>
-                        <EditableText initialText={currentCert.issuer} storageKey={`cert_iss_${currentCert.id}`} isEditing={isEditMode} tag="span" />
-                      </div>
-                      <div className="font-medium text-brand-dark dark:text-brand-bg">
-                        <span className="font-bold">Date: </span>
-                        <EditableText initialText={currentCert.date} storageKey={`cert_date_${currentCert.id}`} isEditing={isEditMode} tag="span" />
-                      </div>
-                      <div className="mt-4 pt-4 border-t border-brand-dark/10 dark:border-brand-bg/10">
-                        <EditableText
-                          initialText={currentCert.description || "No description provided."}
-                          storageKey={`cert_desc_${currentCert.id}`}
-                          isEditing={isEditMode}
-                          tag="p"
-                          multiline={true}
-                          className="text-sm md:text-base leading-relaxed text-brand-dark dark:text-brand-bg opacity-90"
-                        />
+                    <div className="p-4 bg-brand-dark/5 dark:bg-white/5 rounded-xl border-2 border-brand-dark/10 dark:border-brand-bg/10">
+                      <div className="flex flex-col gap-2">
+                        <div className="text-sm font-bold opacity-70 uppercase tracking-widest text-brand-dark dark:text-brand-bg">Details</div>
+                        <div className="font-medium text-brand-dark dark:text-brand-bg">
+                          <span className="font-bold">Issued by: </span>
+                          <EditableText initialText={currentCert.issuer} storageKey={`cert_iss_${currentCert.id}`} isEditing={isEditMode} tag="span" />
+                        </div>
+                        <div className="font-medium text-brand-dark dark:text-brand-bg">
+                          <span className="font-bold">Date: </span>
+                          <EditableText initialText={currentCert.date} storageKey={`cert_date_${currentCert.id}`} isEditing={isEditMode} tag="span" />
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-brand-dark/10 dark:border-brand-bg/10">
+                          <EditableText
+                            initialText={currentCert.description || "No description provided."}
+                            storageKey={`cert_desc_${currentCert.id}`}
+                            isEditing={isEditMode}
+                            tag="p"
+                            multiline={true}
+                            className="text-sm md:text-base leading-relaxed text-brand-dark dark:text-brand-bg opacity-90"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
