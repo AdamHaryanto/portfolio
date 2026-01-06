@@ -1,4 +1,4 @@
-// Auto-generated from portfolio export on 2026-01-06T05:24:20.311Z
+// Auto-generated from portfolio export on 2026-01-06T13:26:01.374Z
 // Replace your existing constants.ts with this file to make changes permanent
 
 import { SkillCategory, Project, Experience, Certificate, ContactButton } from './types';
@@ -306,42 +306,288 @@ export const CONTACT_BUTTONS: ContactButton[] = [
   }
 ];
 
-export const PORTFOLIO_3D: string[] = [
-  "https://lh3.googleusercontent.com/d/1O6uhUeT_GOa61ESuuM2iu4gXcYTOHhCA",
-  "https://drive.google.com/file/d/18fewwGIMlsJfHsL-9ju8WzS5GBUTQYr9/view?usp=sharing",
-  "https://lh3.googleusercontent.com/d/1ug2uUElFV0MTUQ4bJV5qHxJj1Mi8QIf0",
-  "https://www.instagram.com/p/Cu3_R2vrgUt/",
-  "https://www.instagram.com/p/CpFskiVgrkt/",
-  "https://www.instagram.com/p/CsBI2hCrGMW/?img_index=2",
-  "https://lh3.googleusercontent.com/d/1LBr4Ezt0o0UQjOfkpTLqXXBTPPli4khw",
-  "https://lh3.googleusercontent.com/d/1svxedXBD1ZyeAocF9RPN6uA-y3gZfpyh",
-  "https://lh3.googleusercontent.com/d/1zm3sStlFGds9oEXvHYhj0M2RXUWeQxEQ",
-  "https://lh3.googleusercontent.com/d/1wBrG3t_1kYRji2vF0Uwz7CkgbeA5vJXj",
-  "https://lh3.googleusercontent.com/d/1fg-TC8UrOhnDQDSpcIBU1-J1PU8rJFZU",
-  "https://lh3.googleusercontent.com/d/1hHUPkJB5ZadOB-emAw39dd5rAImNSDkp",
-  "https://lh3.googleusercontent.com/d/1vMaO2J7vC-SzxmkGdp7k9gzbaDKfrQU2",
-  "https://lh3.googleusercontent.com/d/17YpI9rG3MCSPMoIC2HIwdmmmJUq19J2R",
-  "https://lh3.googleusercontent.com/d/1Q1-5GmIIWTfHwJLiJen1A66WTXFBzkgo",
-  "https://lh3.googleusercontent.com/d/1x3wYWCN27wMhgbbPIt_hBgJvfLPQyjxJ",
-  "https://drive.google.com/file/d/1Kgi_DUxY2Ez6d2LBNXuPnONyM75f4t_e/view?usp=sharing",
-  "https://lh3.googleusercontent.com/d/1TVP0J63gb_LkLSU0nkvFZB-kgXrpurEi",
-  "https://lh3.googleusercontent.com/d/1nH6D_TEVbstgO7n0szyhIiQDqaFJ5cyq",
-  "https://lh3.googleusercontent.com/d/1-1oY_iIW4SDgo7lcz3jT64NaWqUd4wrU",
-  "https://lh3.googleusercontent.com/d/19tYfWW5DyVMcObhqp2eZerxamHkAN6Ig",
-  "https://lh3.googleusercontent.com/d/14oDDDXMr1FsW02JumECNW9H5kBNreqQT",
-  "https://lh3.googleusercontent.com/d/15ygkphPaU74EwJseVE7ZhfpM-kjYJN_E",
-  "https://lh3.googleusercontent.com/d/1bVdfbcy8LBYE3siBnmC-7JKNTs1fM6mk",
-  "https://lh3.googleusercontent.com/d/1jN0u21ex_bXiKHoDJwiEWxwV36Mow0ZW",
-  "https://lh3.googleusercontent.com/d/1cKN9rGjWKxm53lSK0FEbZj2UYsWIDsc7",
-  "https://lh3.googleusercontent.com/d/1-tgTusu9NHyBSL_BQVWLTQC33f0LgwqY",
-  "https://lh3.googleusercontent.com/d/1Zu1JI0r6GZlY665GdJn23cyptfSzE1q8",
-  "https://lh3.googleusercontent.com/d/1IU1FstlxWDn0fY4sOXlcZ4dOy-9RtSTk",
-  "https://lh3.googleusercontent.com/d/1U_uL5cD-n_3LMlRlMeUNLR7T6n7yleg0"
+export const PORTFOLIO_3D: ArtItem[] = [
+  {
+    "id": "3d_init_3",
+    "url": "https://lh3.googleusercontent.com/d/1O6uhUeT_GOa61ESuuM2iu4gXcYTOHhCA",
+    "type": "image",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1O6uhUeT_GOa61ESuuM2iu4gXcYTOHhCA",
+      "https://lh3.googleusercontent.com/d/1svVn2DJ6fHxLRTTTFumgQKo0isFn26rd",
+      "https://lh3.googleusercontent.com/d/1Sc74a1UFD0DbC-kd2IKPdnGnf5mQUUZQ"
+    ]
+  },
+  {
+    "id": "3d_init_4",
+    "url": "https://drive.google.com/file/d/18fewwGIMlsJfHsL-9ju8WzS5GBUTQYr9/view?usp=sharing",
+    "type": "image",
+    "urls": [
+      "https://drive.google.com/file/d/18fewwGIMlsJfHsL-9ju8WzS5GBUTQYr9/view?usp=sharing",
+      "https://lh3.googleusercontent.com/d/1QsdiJPducJpSH605FolHR5UCkoFfQaJr"
+    ]
+  },
+  {
+    "id": "3d_init_5",
+    "url": "https://lh3.googleusercontent.com/d/1ug2uUElFV0MTUQ4bJV5qHxJj1Mi8QIf0",
+    "type": "image",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1ug2uUElFV0MTUQ4bJV5qHxJj1Mi8QIf0",
+      "https://lh3.googleusercontent.com/d/19fn0fL9zZsTbQm3qcYjoBp6GLl_6iby0",
+      "https://lh3.googleusercontent.com/d/1eH6jOX_EHxgJ1l0fHyiv1Tgus2ymYpVR",
+      "https://lh3.googleusercontent.com/d/10xteVQBPBRA8DoxPbQ1bdcg7b0ky2BNT"
+    ]
+  },
+  {
+    "id": "art_item_1767547553631",
+    "url": "https://www.instagram.com/p/Cu3_R2vrgUt/",
+    "urls": [
+      "https://www.instagram.com/p/Cu3_R2vrgUt/"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767547553902",
+    "url": "https://www.instagram.com/p/CpFskiVgrkt/",
+    "urls": [
+      "https://www.instagram.com/p/CpFskiVgrkt/"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767547554132",
+    "url": "https://www.instagram.com/p/CsBI2hCrGMW/?img_index=2",
+    "urls": [
+      "https://www.instagram.com/p/CsBI2hCrGMW/?img_index=2"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767632012911",
+    "url": "https://lh3.googleusercontent.com/d/1LBr4Ezt0o0UQjOfkpTLqXXBTPPli4khw",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1LBr4Ezt0o0UQjOfkpTLqXXBTPPli4khw"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767632016641",
+    "url": "https://lh3.googleusercontent.com/d/1svxedXBD1ZyeAocF9RPN6uA-y3gZfpyh",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1svxedXBD1ZyeAocF9RPN6uA-y3gZfpyh",
+      "https://lh3.googleusercontent.com/d/1nrywUGDokdIXxEg-ObhNZo2xdP7uqfv2"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767632016825",
+    "url": "https://lh3.googleusercontent.com/d/1zm3sStlFGds9oEXvHYhj0M2RXUWeQxEQ",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1zm3sStlFGds9oEXvHYhj0M2RXUWeQxEQ",
+      "https://lh3.googleusercontent.com/d/1Uo1-GO_ADAAfOPqN4sypbSJLTcAlqSkF",
+      "https://lh3.googleusercontent.com/d/1wLY9bFaJGkDlawJEnSgxVvPLCKUutvhA",
+      "https://lh3.googleusercontent.com/d/1uj8AMIB6sdJbZTRu6Rnf6Sxr4wSqP0Tw"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767632017003",
+    "url": "https://lh3.googleusercontent.com/d/1wBrG3t_1kYRji2vF0Uwz7CkgbeA5vJXj",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1wBrG3t_1kYRji2vF0Uwz7CkgbeA5vJXj",
+      "https://lh3.googleusercontent.com/d/14ZwHHEr_9S3WXTT6sB52UAQAm0vw3wR9",
+      "https://drive.google.com/file/d/1WcAP2KPvTkiKcvBhRY_bJuAj9V-rBAT5/view?usp=sharing",
+      "https://lh3.googleusercontent.com/d/1EmldJXM9-CnN_nSSHcczvCkYtPldSshj"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767667657733",
+    "url": "https://lh3.googleusercontent.com/d/1fg-TC8UrOhnDQDSpcIBU1-J1PU8rJFZU",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1fg-TC8UrOhnDQDSpcIBU1-J1PU8rJFZU"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767667657912",
+    "url": "https://lh3.googleusercontent.com/d/1hHUPkJB5ZadOB-emAw39dd5rAImNSDkp",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1hHUPkJB5ZadOB-emAw39dd5rAImNSDkp"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767667658154",
+    "url": "https://lh3.googleusercontent.com/d/1vMaO2J7vC-SzxmkGdp7k9gzbaDKfrQU2",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1vMaO2J7vC-SzxmkGdp7k9gzbaDKfrQU2"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767667986963",
+    "url": "https://lh3.googleusercontent.com/d/17YpI9rG3MCSPMoIC2HIwdmmmJUq19J2R",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/17YpI9rG3MCSPMoIC2HIwdmmmJUq19J2R"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767667987119",
+    "url": "https://lh3.googleusercontent.com/d/1Q1-5GmIIWTfHwJLiJen1A66WTXFBzkgo",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1Q1-5GmIIWTfHwJLiJen1A66WTXFBzkgo"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767671127502",
+    "url": "https://lh3.googleusercontent.com/d/1x3wYWCN27wMhgbbPIt_hBgJvfLPQyjxJ",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1x3wYWCN27wMhgbbPIt_hBgJvfLPQyjxJ"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767671127678",
+    "url": "https://drive.google.com/file/d/1Kgi_DUxY2Ez6d2LBNXuPnONyM75f4t_e/view?usp=sharing",
+    "urls": [
+      "https://drive.google.com/file/d/1Kgi_DUxY2Ez6d2LBNXuPnONyM75f4t_e/view?usp=sharing"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767671127859",
+    "url": "https://lh3.googleusercontent.com/d/1TVP0J63gb_LkLSU0nkvFZB-kgXrpurEi",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1TVP0J63gb_LkLSU0nkvFZB-kgXrpurEi"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767671128023",
+    "url": "https://lh3.googleusercontent.com/d/1nH6D_TEVbstgO7n0szyhIiQDqaFJ5cyq",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1nH6D_TEVbstgO7n0szyhIiQDqaFJ5cyq"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767671128187",
+    "url": "https://lh3.googleusercontent.com/d/1-1oY_iIW4SDgo7lcz3jT64NaWqUd4wrU",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1-1oY_iIW4SDgo7lcz3jT64NaWqUd4wrU"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672890016",
+    "url": "https://lh3.googleusercontent.com/d/19tYfWW5DyVMcObhqp2eZerxamHkAN6Ig",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/19tYfWW5DyVMcObhqp2eZerxamHkAN6Ig"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672890174",
+    "url": "https://lh3.googleusercontent.com/d/14oDDDXMr1FsW02JumECNW9H5kBNreqQT",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/14oDDDXMr1FsW02JumECNW9H5kBNreqQT"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672890304",
+    "url": "https://lh3.googleusercontent.com/d/15ygkphPaU74EwJseVE7ZhfpM-kjYJN_E",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/15ygkphPaU74EwJseVE7ZhfpM-kjYJN_E"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672890424",
+    "url": "https://lh3.googleusercontent.com/d/1bVdfbcy8LBYE3siBnmC-7JKNTs1fM6mk",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1bVdfbcy8LBYE3siBnmC-7JKNTs1fM6mk"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672902114",
+    "url": "https://lh3.googleusercontent.com/d/1jN0u21ex_bXiKHoDJwiEWxwV36Mow0ZW",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1jN0u21ex_bXiKHoDJwiEWxwV36Mow0ZW"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672902288",
+    "url": "https://lh3.googleusercontent.com/d/1cKN9rGjWKxm53lSK0FEbZj2UYsWIDsc7",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1cKN9rGjWKxm53lSK0FEbZj2UYsWIDsc7",
+      "https://lh3.googleusercontent.com/d/1IBGuyvqd701LmlO2AUfhCg6jjeiA1srE"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767672913397",
+    "url": "https://lh3.googleusercontent.com/d/1-tgTusu9NHyBSL_BQVWLTQC33f0LgwqY",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1-tgTusu9NHyBSL_BQVWLTQC33f0LgwqY",
+      "https://lh3.googleusercontent.com/d/1XcF54qt-tzvNFhXpQeqL4cE2RoLwTCdo",
+      "https://lh3.googleusercontent.com/d/1TGaI0bhn85qKrACpApAeXFXruboSgq43",
+      "https://lh3.googleusercontent.com/d/1nYVEVaCgsUySFe8FlXoA_vqdjIAhx__y",
+      "https://lh3.googleusercontent.com/d/1fkLTKzsfkFzKavyw2B8pyibs9QkUrsjz",
+      "https://lh3.googleusercontent.com/d/1nbCGwbUGiGhu5TVMxNwiMP7bXBtjBaq4"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767674054458",
+    "url": "https://lh3.googleusercontent.com/d/1Zu1JI0r6GZlY665GdJn23cyptfSzE1q8",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1Zu1JI0r6GZlY665GdJn23cyptfSzE1q8",
+      "https://lh3.googleusercontent.com/d/1X8dzh19rNa67ei0H2mkei-VaG7MQlp8y",
+      "https://lh3.googleusercontent.com/d/16cQt55JxF6GY62VyWrqqE_R8SyuUccG-",
+      "https://lh3.googleusercontent.com/d/1fWx_eCXlsprPyNCkGG30Q_i7pHsoFUz3"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767674054615",
+    "url": "https://lh3.googleusercontent.com/d/1IU1FstlxWDn0fY4sOXlcZ4dOy-9RtSTk",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1IU1FstlxWDn0fY4sOXlcZ4dOy-9RtSTk"
+    ],
+    "type": "image"
+  },
+  {
+    "id": "art_item_1767674054772",
+    "url": "https://lh3.googleusercontent.com/d/1U_uL5cD-n_3LMlRlMeUNLR7T6n7yleg0",
+    "urls": [
+      "https://lh3.googleusercontent.com/d/1U_uL5cD-n_3LMlRlMeUNLR7T6n7yleg0"
+    ],
+    "type": "image"
+  }
 ];
 
-export const PORTFOLIO_2D: string[] = [
-  "https://picsum.photos/seed/2d2/300/400",
-  "https://picsum.photos/seed/2d3/300/400"
+export const PORTFOLIO_2D: ArtItem[] = [
+  {
+    "id": "2d_init_1",
+    "url": "https://picsum.photos/seed/2d2/300/400",
+    "type": "image"
+  },
+  {
+    "id": "2d_init_2",
+    "url": "https://picsum.photos/seed/2d3/300/400",
+    "type": "image",
+    "urls": [
+      "https://picsum.photos/seed/2d3/300/400",
+      "https://picsum.photos/seed/gallery_1767604884684/400/300",
+      "https://picsum.photos/seed/gallery_1767604885156/400/300",
+      "https://picsum.photos/seed/gallery_1767604885485/400/300"
+    ]
+  }
 ];
 
 // ==================================================
