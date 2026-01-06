@@ -92,17 +92,32 @@ function App() {
         return parsed;
       }
     } catch (e) { console.error(e); }
-    // Default values if nothing in localStorage
+
+    // Default values from constants
+    // Helper to process items whether they are legacy strings or full objects
+    const processItems = (items: any[], prefix: string) => {
+      return items.map((item, i) => {
+        if (typeof item === 'string') {
+          return { id: `${prefix}_init_${i}_${Date.now()}`, url: item, type: 'image' };
+        }
+        return {
+          ...item,
+          // Ensure ID exists if missing from constant
+          id: item.id || `${prefix}_init_${i}_${Date.now()}`
+        };
+      });
+    };
+
     return [
       {
         id: '3d',
         title: '3D Portfolio',
-        items: PORTFOLIO_3D.map((url, i) => ({ id: `3d_init_${i}`, url, type: 'image' }))
+        items: processItems(PORTFOLIO_3D || [], '3d')
       },
       {
         id: '2d',
         title: '2D Portfolio',
-        items: PORTFOLIO_2D.map((url, i) => ({ id: `2d_init_${i}`, url, type: 'image' }))
+        items: processItems(PORTFOLIO_2D || [], '2d')
       }
     ];
   });
@@ -366,13 +381,13 @@ export const CERTIFICATES: Certificate[] = ${JSON.stringify(dynamicCertificates,
 
 export const CONTACT_BUTTONS: ContactButton[] = ${JSON.stringify(dynamicContactButtons, null, 2)};
 
-export const PORTFOLIO_3D: string[] = ${JSON.stringify(
-      artCategories.find(c => c.id === '3d')?.items.map(i => i.url) || [],
+export const PORTFOLIO_3D: ArtItem[] = ${JSON.stringify(
+      artCategories.find(c => c.id === '3d')?.items || [],
       null, 2
     )};
 
-export const PORTFOLIO_2D: string[] = ${JSON.stringify(
-      artCategories.find(c => c.id === '2d')?.items.map(i => i.url) || [],
+export const PORTFOLIO_2D: ArtItem[] = ${JSON.stringify(
+      artCategories.find(c => c.id === '2d')?.items || [],
       null, 2
     )};
 

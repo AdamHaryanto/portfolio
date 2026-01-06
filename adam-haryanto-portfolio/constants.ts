@@ -1,4 +1,4 @@
-// Auto-generated from portfolio export on 2026-01-06T10:59:04.155Z
+// Auto-generated from portfolio export on 2026-01-06T05:24:20.311Z
 // Replace your existing constants.ts with this file to make changes permanent
 
 import { SkillCategory, Project, Experience, Certificate, ContactButton } from './types';
