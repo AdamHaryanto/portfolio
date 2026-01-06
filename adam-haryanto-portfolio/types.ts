@@ -44,6 +44,8 @@ export interface Certificate {
   issuer: string;
   date: string; // Can be just year or full date
   image: string;
+  urls?: string[]; // Added multiple images support
+  description?: string; // Added description
 }
 
 // New Types for Dynamic Art Portfolio

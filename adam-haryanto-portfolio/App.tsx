@@ -68,11 +68,17 @@ function App() {
   });
 
   const [dynamicCertificates, setDynamicCertificates] = useState<Certificate[]>(() => {
+    let data = CERTIFICATES;
     try {
       const saved = localStorage.getItem('user_certificates');
-      if (saved) return JSON.parse(saved);
+      if (saved) data = JSON.parse(saved);
     } catch (e) { console.error(e); }
-    return CERTIFICATES;
+    // Ensure structure
+    return data.map(cert => ({
+      ...cert,
+      urls: cert.urls || [cert.image],
+      description: cert.description || ''
+    }));
   });
 
   const [dynamicContactButtons, setDynamicContactButtons] = useState<ContactButton[]>(() => {
@@ -693,22 +699,78 @@ export const SOCIAL_LINKS = {
       title: "New Certificate",
       issuer: "Issuer Name",
       date: "2025",
-      image: "https://picsum.photos/seed/newcert/600/400"
+      image: "https://picsum.photos/seed/newcert/600/400",
+      urls: ["https://picsum.photos/seed/newcert/600/400"],
+      description: "Certificate description goes here."
     };
-    setDynamicCertificates([...dynamicCertificates, newCert]);
-    save('user_certificates', [...dynamicCertificates, newCert]);
+    setDynamicCertificates(prev => {
+      const updated = [...prev, newCert];
+      save('user_certificates', updated);
+      return updated;
+    });
   };
   const removeCertificate = (index: number) => {
-    const updated = [...dynamicCertificates];
-    updated.splice(index, 1);
-    setDynamicCertificates(updated);
-    save('user_certificates', updated);
+    setDynamicCertificates(prev => {
+      const updated = [...prev];
+      updated.splice(index, 1);
+      save('user_certificates', updated);
+      return updated;
+    });
   };
   const updateCertificateImage = (index: number, newUrl: string) => {
-    const updated = [...dynamicCertificates];
-    updated[index] = { ...updated[index], image: newUrl };
-    setDynamicCertificates(updated);
-    save('user_certificates', updated);
+    setDynamicCertificates(prev => {
+      const updated = prev.map((cert, i) => {
+        if (i === index) {
+          const newUrls = cert.urls ? [...cert.urls] : [cert.image];
+          if (newUrls.length > 0) newUrls[0] = newUrl; else newUrls.push(newUrl);
+          return { ...cert, image: newUrl, urls: newUrls };
+        }
+        return cert;
+      });
+      save('user_certificates', updated);
+      return updated;
+    });
+  };
+  const addCertificateImage = (index: number) => {
+    setDynamicCertificates(prev => {
+      const updated = prev.map((cert, i) => {
+        if (i === index) {
+          return { ...cert, urls: [...(cert.urls || [cert.image]), `https://picsum.photos/seed/cert_${Date.now()}/600/400`] };
+        }
+        return cert;
+      });
+      save('user_certificates', updated);
+      return updated;
+    });
+  };
+  const removeCertificateImage = (certIndex: number, imgIndex: number) => {
+    setDynamicCertificates(prev => {
+      const updated = prev.map((cert, i) => {
+        if (i === certIndex) {
+          const newUrls = (cert.urls || [cert.image]).filter((_, idx) => idx !== imgIndex);
+          if (newUrls.length === 0) return cert;
+          return { ...cert, image: newUrls[0], urls: newUrls };
+        }
+        return cert;
+      });
+      save('user_certificates', updated);
+      return updated;
+    });
+  };
+  const updateCertificateImageAtIndex = (certIndex: number, imgIndex: number, newUrl: string) => {
+    setDynamicCertificates(prev => {
+      const updated = prev.map((cert, i) => {
+        if (i === certIndex) {
+          const newUrls = [...(cert.urls || [cert.image])];
+          newUrls[imgIndex] = newUrl;
+          const newMainImage = imgIndex === 0 ? newUrl : cert.image;
+          return { ...cert, image: newMainImage, urls: newUrls };
+        }
+        return cert;
+      });
+      save('user_certificates', updated);
+      return updated;
+    });
   };
   const addArtCategory = () => {
     const newCat: ArtCategory = { id: `cat_${Date.now()}`, title: "New Portfolio Group", items: [] };
@@ -1607,28 +1669,32 @@ export const SOCIAL_LINKS = {
             {dynamicCertificates.map((cert, index) => (
               <div key={cert.id} className="relative group/cert">
                 <Card variant="white" className="p-4 group cursor-pointer hover:-translate-y-1 transition-transform" noShadow={false}>
-                  <div className="border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-4 relative" onClick={() => setSelectedCertificate(cert)}>
+                  <div className="border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-4 relative cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
                     <EditableMedia
                       src={cert.image}
                       alt={cert.title}
-                      className="w-full h-auto object-contain grayscale group-hover:grayscale-0 transition-all"
+                      className="w-full h-auto object-contain transition-all"
                       storageKey={`cert_img_${cert.id}`}
                       isEditing={isEditMode}
                       wrapperClassName="w-full"
                       onUpdate={(newUrl) => updateCertificateImage(index, newUrl)}
                     />
+                    {(cert.urls && cert.urls.length > 1) && (
+                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                        +{cert.urls.length - 1}
+                      </div>
+                    )}
                   </div>
-                  <div className={`p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center font-bold text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'}`}>
+                  <div className={`p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center font-bold text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'} cursor-pointer`} onClick={() => setSelectedCertificate(cert)}>
                     <EditableText initialText={cert.title} storageKey={`cert_title_${cert.id}`} isEditing={isEditMode} tag="span" />
                   </div>
-                  {isEditMode && (
-                    <div className="mt-2 text-xs text-center border-t border-dashed border-gray-400 dark:border-brand-bg/50 pt-2 text-brand-dark dark:text-brand-bg">
-                      <span className="font-bold">Issuer: </span>
-                      <EditableText initialText={cert.issuer} storageKey={`cert_iss_${cert.id}`} isEditing={true} tag="span" />
-                      <span className="mx-2">|</span>
-                      <EditableText initialText={cert.date} storageKey={`cert_date_${cert.id}`} isEditing={true} tag="span" />
-                    </div>
-                  )}
+                  <div className="mt-2 text-xs text-center border-t border-dashed border-gray-400 dark:border-brand-bg/50 pt-2 text-brand-dark dark:text-brand-bg cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
+                    <span className="font-bold">Issuer: </span>
+                    <EditableText initialText={cert.issuer} storageKey={`cert_iss_${cert.id}`} isEditing={isEditMode} tag="span" />
+                    <span className="mx-2">|</span>
+                    <EditableText initialText={cert.date} storageKey={`cert_date_${cert.id}`} isEditing={isEditMode} tag="span" />
+                  </div>
                 </Card>
                 {isEditMode && (
                   <button
@@ -1649,22 +1715,79 @@ export const SOCIAL_LINKS = {
             )}
           </div>
         </Section>
-        {selectedCertificate && (
-          <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedCertificate(null)}>
-            <div className="bg-brand-bg dark:bg-brand-dark-bg p-2 rounded-xl border-4 border-brand-dark dark:border-brand-bg max-w-3xl w-full shadow-retro dark:shadow-retro-light relative animate-bounce-in" onClick={e => e.stopPropagation()}>
-              <button onClick={() => setSelectedCertificate(null)} className="absolute -top-4 -right-4 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light hover:scale-110 transition-transform z-10">
-                <X size={24} />
-              </button>
-              <div className="border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden">
-                <img src={selectedCertificate.image} alt={selectedCertificate.title} className="w-full h-auto max-h-[70vh] object-contain bg-black/5" />
-              </div>
-              <div className="p-4 text-center">
-                <h3 className="text-2xl font-black text-brand-dark dark:text-brand-bg mb-1">{selectedCertificate.title}</h3>
-                <p className="font-bold text-lg text-brand-dark/70 dark:text-brand-bg/70">{selectedCertificate.issuer} • {selectedCertificate.date}</p>
+        {selectedCertificate && (() => {
+          const certIndex = dynamicCertificates.findIndex(c => c.id === selectedCertificate.id);
+          const currentCert = certIndex >= 0 ? dynamicCertificates[certIndex] : selectedCertificate;
+          return (
+            <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedCertificate(null)}>
+              <div className="bg-brand-bg dark:bg-brand-dark-bg p-2 rounded-xl border-4 border-brand-dark dark:border-brand-bg max-w-4xl w-full shadow-retro dark:shadow-retro-light relative animate-bounce-in max-h-[90vh] overflow-y-auto retro-scrollbar" onClick={e => e.stopPropagation()}>
+                <button onClick={() => setSelectedCertificate(null)} className="absolute -top-4 -right-4 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light hover:scale-110 transition-transform z-50">
+                  <X size={24} />
+                </button>
+
+                <div className="flex flex-col gap-4 p-2">
+                  <div className="font-black text-2xl md:text-3xl text-center text-brand-dark dark:text-brand-bg p-2 border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20">
+                    <EditableText initialText={currentCert.title} storageKey={`cert_title_${currentCert.id}`} isEditing={isEditMode} tag="span" />
+                  </div>
+
+                  {/* Gallery */}
+                  <div className="space-y-4">
+                    {currentCert.urls?.map((url, imgIdx) => (
+                      <div key={imgIdx} className="relative group border-4 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
+                        <EditableMedia
+                          src={url}
+                          alt={`${currentCert.title} - ${imgIdx + 1}`}
+                          className="w-full h-auto object-contain"
+                          wrapperClassName="w-full h-auto"
+                          storageKey={`cert_${currentCert.id}_img_${imgIdx}`}
+                          isEditing={isEditMode}
+                          onUpdate={(newUrl) => certIndex >= 0 && updateCertificateImageAtIndex(certIndex, imgIdx, newUrl)}
+                        />
+                        {isEditMode && currentCert.urls && currentCert.urls.length > 1 && (
+                          <button
+                            onClick={() => certIndex >= 0 && removeCertificateImage(certIndex, imgIdx)}
+                            className="absolute top-2 right-2 bg-brand-red text-white p-2 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform z-40"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {isEditMode && certIndex >= 0 && (
+                      <button onClick={() => addCertificateImage(certIndex)} className="w-full py-4 border-2 border-dashed border-brand-dark dark:border-brand-bg rounded-lg flex items-center justify-center gap-2 font-bold text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:text-brand-dark dark:hover:text-brand-bg transition-all">
+                        <Plus size={20} /> Add Another Image
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="p-4 bg-brand-dark/5 dark:bg-white/5 rounded-xl border-2 border-brand-dark/10 dark:border-brand-bg/10">
+                    <div className="flex flex-col gap-2">
+                      <div className="text-sm font-bold opacity-70 uppercase tracking-widest text-brand-dark dark:text-brand-bg">Details</div>
+                      <div className="font-medium text-brand-dark dark:text-brand-bg">
+                        <span className="font-bold">Issued by: </span>
+                        <EditableText initialText={currentCert.issuer} storageKey={`cert_iss_${currentCert.id}`} isEditing={isEditMode} tag="span" />
+                      </div>
+                      <div className="font-medium text-brand-dark dark:text-brand-bg">
+                        <span className="font-bold">Date: </span>
+                        <EditableText initialText={currentCert.date} storageKey={`cert_date_${currentCert.id}`} isEditing={isEditMode} tag="span" />
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-brand-dark/10 dark:border-brand-bg/10">
+                        <EditableText
+                          initialText={currentCert.description || "No description provided."}
+                          storageKey={`cert_desc_${currentCert.id}`}
+                          isEditing={isEditMode}
+                          tag="p"
+                          multiline={true}
+                          className="text-sm md:text-base leading-relaxed text-brand-dark dark:text-brand-bg opacity-90"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
         <Section id="contact" title="Contact Me" isEditing={isEditMode} storageKey="title_contact">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
