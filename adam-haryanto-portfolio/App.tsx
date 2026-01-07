@@ -424,6 +424,10 @@ function App() {
     const exportCertificates = JSON.parse(JSON.stringify(dynamicCertificates));
     const exportContactButtons = JSON.parse(JSON.stringify(dynamicContactButtons));
 
+    // Education & Social (Clone static constants)
+    const exportEducation = JSON.parse(JSON.stringify(EDUCATION));
+    const exportSocial = JSON.parse(JSON.stringify(SOCIAL_LINKS));
+
     const art3dIndex = artCategories.findIndex(c => c.id === '3d');
     const art2dIndex = artCategories.findIndex(c => c.id === '2d');
     const exportArt3D = art3dIndex >= 0 ? JSON.parse(JSON.stringify(artCategories[art3dIndex].items)) : [];
