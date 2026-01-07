@@ -412,78 +412,144 @@ function App() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    alert('Data portfolio berhasil di-export! File JSON telah diunduh.\n\nUntuk membuat perubahan permanen:\n1. Buka file JSON yang diunduh\n2. Copy isi data ke file constants.ts\n3. Re-deploy website Anda');
+    alert('Data portfolio berhasil di-export! File JSON telah diunduh!\n\nUntuk membuat perubahan permanen:\n1. Buka file JSON yang diunduh\n2. Copy isi data ke file constants.ts\n3. Re-deploy website Anda');
   };
 
   // Export as ready-to-use constants.ts file
   const exportAsConstantsFile = () => {
-    // Collect all custom text and images from localStorage
+    // 1. Clone data to enable merging (avoid mutating state)
+    const exportSkills = JSON.parse(JSON.stringify(dynamicSkills));
+    const exportProjects = JSON.parse(JSON.stringify(dynamicProjects));
+    const exportExperiences = JSON.parse(JSON.stringify(dynamicExperiences));
+    const exportCertificates = JSON.parse(JSON.stringify(dynamicCertificates));
+    const exportContactButtons = JSON.parse(JSON.stringify(dynamicContactButtons));
+
+    const art3dIndex = artCategories.findIndex(c => c.id === '3d');
+    const art2dIndex = artCategories.findIndex(c => c.id === '2d');
+    const exportArt3D = art3dIndex >= 0 ? JSON.parse(JSON.stringify(artCategories[art3dIndex].items)) : [];
+    const exportArt2D = art2dIndex >= 0 ? JSON.parse(JSON.stringify(artCategories[art2dIndex].items)) : [];
+
+    // 2. Buckets for leftover customizations
     const customTexts: Record<string, string> = {};
     const customImages: Record<string, string> = {};
 
+    // 3. Scan LocalStorage & Merge edits into main objects
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key) {
-        // Collect text edits (from EditableText)
-        if (key.startsWith('text_')) {
-          const storageKey = key.replace('text_', '');
-          const value = localStorage.getItem(key);
-          if (value) {
-            customTexts[storageKey] = value;
+      if (!key) continue;
+
+      const val = localStorage.getItem(key);
+      if (!val) continue;
+
+      let merged = false;
+
+      // --- TEXT Overrides ---
+      if (key.startsWith('text_')) {
+        const coreKey = key.replace('text_', '');
+
+        // Projects
+        if (coreKey.startsWith('proj_')) {
+          const match = exportProjects.find((p: any) => coreKey.includes(p.id));
+          if (match) {
+            if (coreKey.includes('title')) match.title = val;
+            else if (coreKey.includes('desc')) match.description = val;
+            else if (coreKey.includes('tech')) match.tags = val.split(',').map((s: string) => s.trim());
+            merged = true;
           }
         }
-        // Collect image edits from EditableImage (img_ prefix)
-        if (key.startsWith('img_')) {
-          const storageKey = key.replace('img_', '');
-          const value = localStorage.getItem(key);
-          if (value) {
-            customImages[storageKey] = value;
+        // Certificates
+        else if (coreKey.startsWith('cert_')) {
+          const match = exportCertificates.find((c: any) => coreKey.includes(c.id));
+          if (match) {
+            if (coreKey.includes('title')) match.title = val;
+            else if (coreKey.includes('desc')) match.description = val;
+            else if (coreKey.includes('iss')) match.issuer = val;
+            else if (coreKey.includes('date')) match.date = val;
+            merged = true;
           }
         }
-        // Collect media edits from EditableMedia (media_ prefix)
-        if (key.startsWith('media_')) {
-          const storageKey = key.replace('media_', '');
-          const value = localStorage.getItem(key);
-          if (value) {
-            customImages[storageKey] = value;
+        // Experiences
+        else if (coreKey.startsWith('exp_')) {
+          const match = exportExperiences.find((e: any) => coreKey.includes(e.id));
+          if (match) {
+            if (coreKey.includes('role')) match.role = val;
+            else if (coreKey.includes('comp')) match.company = val;
+            else if (coreKey.includes('desc')) match.description = val;
+            else if (coreKey.includes('period')) match.period = val;
+            merged = true;
           }
+        }
+        // Art Item Titles
+        else if (coreKey.startsWith('art_title_')) {
+          let match = exportArt3D.find((a: any) => coreKey.includes(a.id));
+          if (!match) match = exportArt2D.find((a: any) => coreKey.includes(a.id));
+          if (match) { match.title = val; merged = true; }
+        }
+
+        if (!merged) {
+          customTexts[coreKey] = val;
+        }
+      }
+
+      // --- IMAGE Overrides ---
+      else if (key.startsWith('img_') || key.startsWith('media_')) {
+        const coreKey = key.replace(/^(img_|media_)/, '');
+
+        // Projects
+        if (coreKey.startsWith('proj_img_')) {
+          const match = exportProjects.find((p: any) => coreKey.includes(p.id));
+          if (match) { match.image = val; merged = true; }
+        }
+        // Certificates (Main)
+        else if (coreKey.startsWith('cert_img_')) {
+          const match = exportCertificates.find((c: any) => coreKey.includes(c.id));
+          if (match) { match.image = val; merged = true; }
+        }
+        // Experiences
+        else if (coreKey.startsWith('exp_img_')) {
+          const match = exportExperiences.find((e: any) => coreKey.includes(e.id));
+          if (match) { match.logo = val; merged = true; }
+        }
+        // Art Items (Main URL)
+        else if (coreKey.startsWith('art_item_')) {
+          let match = exportArt3D.find((a: any) => coreKey.includes(a.id));
+          if (!match) match = exportArt2D.find((a: any) => coreKey.includes(a.id));
+          if (match) { match.url = val; merged = true; }
+        }
+
+        if (!merged) {
+          customImages[coreKey] = val;
         }
       }
     }
 
-    // Generate TypeScript code for constants.ts
+    // Generate TypeScript code
     const tsCode = `// Auto-generated from portfolio export on ${new Date().toISOString()}
 // Replace your existing constants.ts with this file to make changes permanent
 
-import { SkillCategory, Project, Experience, Certificate, ContactButton } from './types';
+import { SkillCategory, Project, Experience, Certificate, ContactButton, ArtItem } from './types';
 
-export const SKILL_CATEGORIES: SkillCategory[] = ${JSON.stringify(dynamicSkills, null, 2)};
+export const SKILL_CATEGORIES: SkillCategory[] = ${JSON.stringify(exportSkills, null, 2)};
 
-export const PROJECTS: Project[] = ${JSON.stringify(dynamicProjects, null, 2)};
+export const PROJECTS: Project[] = ${JSON.stringify(exportProjects, null, 2)};
 
-export const EXPERIENCES: Experience[] = ${JSON.stringify(dynamicExperiences, null, 2)};
+export const EXPERIENCES: Experience[] = ${JSON.stringify(exportExperiences, null, 2)};
 
-export const CERTIFICATES: Certificate[] = ${JSON.stringify(dynamicCertificates, null, 2)};
+export const CERTIFICATES: Certificate[] = ${JSON.stringify(exportCertificates, null, 2)};
 
-export const CONTACT_BUTTONS: ContactButton[] = ${JSON.stringify(dynamicContactButtons, null, 2)};
+export const CONTACT_BUTTONS: ContactButton[] = ${JSON.stringify(exportContactButtons, null, 2)};
 
-export const PORTFOLIO_3D: ArtItem[] = ${JSON.stringify(
-      artCategories.find(c => c.id === '3d')?.items || [],
-      null, 2
-    )};
+export const PORTFOLIO_3D: ArtItem[] = ${JSON.stringify(exportArt3D, null, 2)};
 
-export const PORTFOLIO_2D: ArtItem[] = ${JSON.stringify(
-      artCategories.find(c => c.id === '2d')?.items || [],
-      null, 2
-    )};
+export const PORTFOLIO_2D: ArtItem[] = ${JSON.stringify(exportArt2D, null, 2)};
 
 // ==================================================
-// CUSTOM TEXT CONTENT - Edited via Edit Mode
+// CUSTOM TEXT CONTENT - Flattened & Merged
 // ==================================================
 export const CUSTOM_TEXTS: Record<string, string> = ${JSON.stringify(customTexts, null, 2)};
 
 // ==================================================
-// CUSTOM IMAGES - Uploaded via Edit Mode
+// CUSTOM IMAGES - Flattened & Merged
 // ==================================================
 export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(customImages, null, 2)};
 
@@ -528,16 +594,11 @@ export const SOCIAL_LINKS = {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    const textCount = Object.keys(customTexts).length;
-    const imageCount = Object.keys(customImages).length;
-
     alert(
-      '✅ File constants.ts berhasil di-generate!\n\n' +
-      `📊 Data yang di-export:\n` +
-      `   • ${textCount} teks kustom\n` +
-      `   • ${imageCount} gambar kustom\n` +
-      `   • ${dynamicProjects.length} project\n` +
-      `   • ${dynamicExperiences.length} experience\n\n` +
+      '✅ File constants.ts BERHASIL di-generate dengan SMART MERGE!\n\n' +
+      '• Text & Gambar edit di-merge LANGSUNG ke dalam Projects/Certificates/dll.\n' +
+      '• CUSTOM_TEXTS akan bersih dari data redundan.\n' +
+      '• Siap untuk deploy ke GitHub/Vercel (Copy-paste isi file ini).\n\n' +
       '📋 LANGKAH UNTUK MEMBUAT PERUBAHAN PERMANEN:\n\n' +
       '1. Buka file "constants_[tanggal].ts" yang baru diunduh\n' +
       '2. Copy SELURUH isi file tersebut\n' +
