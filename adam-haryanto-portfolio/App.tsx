@@ -415,78 +415,219 @@ function App() {
     alert('Data portfolio berhasil di-export! File JSON telah diunduh!\n\nUntuk membuat perubahan permanen:\n1. Buka file JSON yang diunduh\n2. Copy isi data ke file constants.ts\n3. Re-deploy website Anda');
   };
 
-  // Export as ready-to-use constants.ts file - SIMPLE VERSION
-  // Exports ALL localStorage data directly without complex merging
+  // Export as ready-to-use constants.ts file
+  // FULL MERGE: All localStorage edits are merged directly into data objects
   const exportAsConstantsFile = () => {
-    // 1. Collect ALL text and image data from localStorage
-    const customTexts: Record<string, string> = {};
-    const customImages: Record<string, string> = {};
+    // 1. Clone all data to avoid mutating state
+    const exportSkills = JSON.parse(JSON.stringify(dynamicSkills));
+    const exportProjects = JSON.parse(JSON.stringify(dynamicProjects));
+    const exportExperiences = JSON.parse(JSON.stringify(dynamicExperiences));
+    const exportCertificates = JSON.parse(JSON.stringify(dynamicCertificates));
+    const exportContactButtons = JSON.parse(JSON.stringify(dynamicContactButtons));
+    const exportEducation = JSON.parse(JSON.stringify(EDUCATION));
+    const exportSocial = JSON.parse(JSON.stringify(SOCIAL_LINKS));
 
+    const art3dIndex = artCategories.findIndex(c => c.id === '3d');
+    const art2dIndex = artCategories.findIndex(c => c.id === '2d');
+    const exportArt3D = art3dIndex >= 0 ? JSON.parse(JSON.stringify(artCategories[art3dIndex].items)) : [];
+    const exportArt2D = art2dIndex >= 0 ? JSON.parse(JSON.stringify(artCategories[art2dIndex].items)) : [];
+
+    // For any edits that can't be merged into known structures
+    const remainingTexts: Record<string, string> = {};
+    const remainingImages: Record<string, string> = {};
+
+    // 2. Scan ALL localStorage and MERGE edits directly into data objects
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (!key) continue;
-
       const val = localStorage.getItem(key);
       if (!val) continue;
 
-      // Collect ALL text_ keys
+      let merged = false;
+
+      // ========== TEXT EDITS ==========
       if (key.startsWith('text_')) {
-        const coreKey = key.replace('text_', '');
-        customTexts[coreKey] = val;
+        const k = key.replace('text_', '');
+
+        // --- Projects ---
+        for (const proj of exportProjects) {
+          if (k === `proj_title_${proj.id}`) { proj.title = val; merged = true; break; }
+          if (k === `proj_desc_${proj.id}`) { proj.description = val; merged = true; break; }
+          if (k === `proj_category_${proj.id}`) { proj.category = val; merged = true; break; }
+          if (k === `proj_engine_${proj.id}`) { proj.engine = val; merged = true; break; }
+          if (k === `proj_role_${proj.id}`) { proj.role = val; merged = true; break; }
+          if (k === `proj_status_${proj.id}`) { proj.status = val; merged = true; break; }
+          if (k === `proj_link_${proj.id}`) { proj.link = val; merged = true; break; }
+        }
+        if (merged) continue;
+
+        // --- Experiences ---
+        for (const exp of exportExperiences) {
+          if (k === `exp_role_${exp.id}`) { exp.role = val; merged = true; break; }
+          if (k === `exp_company_${exp.id}`) { exp.company = val; merged = true; break; }
+          if (k === `exp_desc_${exp.id}`) { exp.description = val; merged = true; break; }
+          if (k === `exp_period_${exp.id}`) { exp.period = val; merged = true; break; }
+          if (k === `exp_type_${exp.id}`) { exp.type = val; merged = true; break; }
+          if (k === `exp_keynotes_${exp.id}`) { exp.keyNotes = val; merged = true; break; }
+        }
+        if (merged) continue;
+
+        // --- Certificates ---
+        for (const cert of exportCertificates) {
+          if (k === `cert_title_${cert.id}`) { cert.title = val; merged = true; break; }
+          if (k === `cert_desc_${cert.id}`) { cert.description = val; merged = true; break; }
+          if (k === `cert_issuer_${cert.id}`) { cert.issuer = val; merged = true; break; }
+          if (k === `cert_date_${cert.id}`) { cert.date = val; merged = true; break; }
+        }
+        if (merged) continue;
+
+        // --- Skills ---
+        for (const cat of exportSkills) {
+          if (k === `skill_cat_${cat.title}`) { cat.title = val; merged = true; break; }
+        }
+        if (merged) continue;
+
+        // --- Contact Buttons ---
+        for (const btn of exportContactButtons) {
+          if (k === `contact_label_${btn.id}`) { btn.label = val; merged = true; break; }
+          if (k === `contact_text_${btn.id}`) { btn.displayText = val; merged = true; break; }
+          if (k === `contact_url_${btn.id}`) { btn.url = val; merged = true; break; }
+        }
+        if (merged) continue;
+
+        // --- Art Items ---
+        for (const art of exportArt3D) {
+          if (k === `art_title_${art.id}`) { art.description = val; merged = true; break; }
+        }
+        if (!merged) {
+          for (const art of exportArt2D) {
+            if (k === `art_title_${art.id}`) { art.description = val; merged = true; break; }
+          }
+        }
+        if (merged) continue;
+
+        // --- Education (by index) ---
+        const eduMatch = k.match(/^edu_(\w+)_(\d+)$/);
+        if (eduMatch) {
+          const field = eduMatch[1];
+          const idx = parseInt(eduMatch[2]);
+          if (exportEducation[idx]) {
+            if (field === 'inst') exportEducation[idx].institution = val;
+            else if (field === 'degree') exportEducation[idx].degree = val;
+            else if (field === 'desc') exportEducation[idx].description = val;
+            else if (field === 'score') exportEducation[idx].score = val;
+            else if (field === 'scorelabel') exportEducation[idx].scoreLabel = val;
+            merged = true;
+          }
+        }
+        if (merged) continue;
+
+        // --- Social Links ---
+        if (k.startsWith('social_')) {
+          const platform = k.replace('social_', '');
+          if (platform in exportSocial) {
+            (exportSocial as any)[platform] = val;
+            merged = true;
+          }
+        }
+        if (merged) continue;
+
+        // If not merged, store in remaining
+        remainingTexts[k] = val;
       }
-      // Collect ALL media_ and img_ keys
+
+      // ========== IMAGE/MEDIA EDITS ==========
       else if (key.startsWith('media_') || key.startsWith('img_')) {
-        const coreKey = key.replace(/^(media_|img_)/, '');
-        customImages[coreKey] = val;
+        const k = key.replace(/^(media_|img_)/, '');
+
+        // --- Projects ---
+        for (const proj of exportProjects) {
+          if (k === `proj_img_${proj.id}`) { proj.image = val; merged = true; break; }
+          // Screenshots
+          const ssMatch = k.match(new RegExp(`^proj_ss_(\\d+)_${proj.id}$`));
+          if (ssMatch) {
+            const ssIdx = parseInt(ssMatch[1]);
+            if (!proj.screenshots) proj.screenshots = [];
+            proj.screenshots[ssIdx] = val;
+            merged = true;
+            break;
+          }
+        }
+        if (merged) continue;
+
+        // --- Experiences ---
+        for (const exp of exportExperiences) {
+          if (k === `exp_img_${exp.id}` || k === `exp_logo_${exp.id}`) {
+            exp.image = val;
+            merged = true;
+            break;
+          }
+        }
+        if (merged) continue;
+
+        // --- Certificates ---
+        for (const cert of exportCertificates) {
+          if (k === `cert_img_${cert.id}`) { cert.image = val; merged = true; break; }
+        }
+        if (merged) continue;
+
+        // --- Art Items ---
+        for (const art of exportArt3D) {
+          if (k === `art_item_${art.id}`) { art.url = val; merged = true; break; }
+        }
+        if (!merged) {
+          for (const art of exportArt2D) {
+            if (k === `art_item_${art.id}`) { art.url = val; merged = true; break; }
+          }
+        }
+        if (merged) continue;
+
+        // --- Education (by index) ---
+        const eduImgMatch = k.match(/^edu_img_(\d+)$/);
+        if (eduImgMatch) {
+          const idx = parseInt(eduImgMatch[1]);
+          if (exportEducation[idx]) {
+            exportEducation[idx].image = val;
+            merged = true;
+          }
+        }
+        if (merged) continue;
+
+        // If not merged, store in remaining
+        remainingImages[k] = val;
       }
     }
 
-    // 2. Get current state data (already reflects what's on screen)
-    const art3dIndex = artCategories.findIndex(c => c.id === '3d');
-    const art2dIndex = artCategories.findIndex(c => c.id === '2d');
-
-    // Generate TypeScript code
+    // 3. Generate TypeScript code with MERGED data
     const tsCode = `// Auto-generated from portfolio export on ${new Date().toISOString()}
-// Replace your existing constants.ts with this file to make changes permanent
+// 100% LOCAL DATA - Replace your constants.ts with this file
 
 import { SkillCategory, Project, Experience, Certificate, ContactButton, ArtItem, Education } from './types';
 
-export const SKILL_CATEGORIES: SkillCategory[] = ${JSON.stringify(dynamicSkills, null, 2)};
+export const SKILL_CATEGORIES: SkillCategory[] = ${JSON.stringify(exportSkills, null, 2)};
 
-export const PROJECTS: Project[] = ${JSON.stringify(dynamicProjects, null, 2)};
+export const PROJECTS: Project[] = ${JSON.stringify(exportProjects, null, 2)};
 
-export const EXPERIENCES: Experience[] = ${JSON.stringify(dynamicExperiences, null, 2)};
+export const EXPERIENCES: Experience[] = ${JSON.stringify(exportExperiences, null, 2)};
 
-export const CERTIFICATES: Certificate[] = ${JSON.stringify(dynamicCertificates, null, 2)};
+export const CERTIFICATES: Certificate[] = ${JSON.stringify(exportCertificates, null, 2)};
 
-export const CONTACT_BUTTONS: ContactButton[] = ${JSON.stringify(dynamicContactButtons, null, 2)};
+export const CONTACT_BUTTONS: ContactButton[] = ${JSON.stringify(exportContactButtons, null, 2)};
 
-export const PORTFOLIO_3D: ArtItem[] = ${JSON.stringify(art3dIndex >= 0 ? artCategories[art3dIndex].items : [], null, 2)};
+export const PORTFOLIO_3D: ArtItem[] = ${JSON.stringify(exportArt3D, null, 2)};
 
-export const PORTFOLIO_2D: ArtItem[] = ${JSON.stringify(art2dIndex >= 0 ? artCategories[art2dIndex].items : [], null, 2)};
+export const PORTFOLIO_2D: ArtItem[] = ${JSON.stringify(exportArt2D, null, 2)};
 
-// ==================================================
-// CUSTOM TEXT - All text edits from localStorage
-// ==================================================
-export const CUSTOM_TEXTS: Record<string, string> = ${JSON.stringify(customTexts, null, 2)};
+export const EDUCATION: Education[] = ${JSON.stringify(exportEducation, null, 2)};
 
-// ==================================================
-// CUSTOM IMAGES - All image edits from localStorage
-// ==================================================
-export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(customImages, null, 2)};
+export const SOCIAL_LINKS = ${JSON.stringify(exportSocial, null, 2)};
 
-// ==================================================
-// EDUCATION
-// ==================================================
-export const EDUCATION: Education[] = ${JSON.stringify(EDUCATION, null, 2)};
-
-// ==================================================
-// SOCIAL LINKS
-// ==================================================
-export const SOCIAL_LINKS = ${JSON.stringify(SOCIAL_LINKS, null, 2)};
+// Remaining custom overrides (for fields not in main structures)
+export const CUSTOM_TEXTS: Record<string, string> = ${JSON.stringify(remainingTexts, null, 2)};
+export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingImages, null, 2)};
 `;
 
-    // Download the TypeScript file
+    // Download
     const blob = new Blob([tsCode], { type: 'text/typescript' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -498,18 +639,17 @@ export const SOCIAL_LINKS = ${JSON.stringify(SOCIAL_LINKS, null, 2)};
     URL.revokeObjectURL(url);
 
     alert(
-      '✅ File constants.ts BERHASIL di-generate!\n\n' +
-      '📦 ISI FILE:\n' +
-      '• Data Projects, Experiences, Certificates, Skills dari tampilan saat ini\n' +
-      '• SEMUA teks edit dari localStorage → CUSTOM_TEXTS\n' +
-      '• SEMUA gambar edit dari localStorage → CUSTOM_IMAGES\n\n' +
+      '✅ PUBLISH BERHASIL!\n\n' +
+      '📦 100% DATA LOKAL ANDA SUDAH DI-EXPORT:\n' +
+      '• Semua judul, deskripsi → langsung di dalam PROJECTS\n' +
+      '• Semua gambar → langsung di dalam objek masing-masing\n' +
+      '• Education & Social Links → sudah ter-update\n\n' +
       '📋 CARA PAKAI:\n' +
-      '1. Buka file yang baru diunduh\n' +
-      '2. Ctrl+A (Select All) → Ctrl+C (Copy)\n' +
-      '3. Buka constants.ts di proyek Anda\n' +
-      '4. Ctrl+A → Ctrl+V (Paste/Timpa)\n' +
-      '5. Save & Deploy!\n\n' +
-      '🎉 Website akan sama persis dengan tampilan Anda saat ini!'
+      '1. Buka file yang diunduh\n' +
+      '2. Ctrl+A → Ctrl+C\n' +
+      '3. Timpa SEMUA isi constants.ts\n' +
+      '4. Save & Deploy\n\n' +
+      '🔥 Data server akan 100% diganti dengan data lokal Anda!'
     );
   };
 
