@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun } from 'lucide-react';
+import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun, RefreshCw } from 'lucide-react';
 import Section from './components/Section';
 import Card from './components/Card';
 import Button from './components/Button';
@@ -140,7 +140,7 @@ function App() {
 
   // Toggle Dark Mode
   const handleFactoryReset = () => {
-    if (confirm('Are you sure you want to reset all data to default? This cannot be undone.')) {
+    if (confirm('RESET WARNING: This will delete ALL local changes (text & images) and revert the portfolio to the version currently on GitHub/constants.ts.\n\nAre you sure you want to Sync/Reset?')) {
       localStorage.clear();
       // Keep theme preference
       if (document.documentElement.classList.contains('dark')) {
@@ -1184,8 +1184,8 @@ export const SOCIAL_LINKS = {
                       <button onClick={cancelEditMode} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-red border-2 border-brand-red rounded-lg py-2">
                         <RotateCcw size={18} /> Cancel
                       </button>
-                      <button onClick={handleFactoryReset} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-dark/50 border-2 border-brand-dark/20 rounded-lg py-2 text-xs">
-                        <AlertTriangle size={14} /> Factory Reset
+                      <button onClick={handleFactoryReset} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-red border-2 border-brand-red/20 rounded-lg py-2 text-xs hover:bg-brand-red hover:text-white transition-colors">
+                        <RefreshCw size={14} /> Sync from Github / Reset
                       </button>
                     </div>
                     <button onClick={cleanupStorage} className="w-full flex justify-center items-center gap-2 font-bold text-gray-500 border-2 border-gray-300 rounded-lg py-2 text-xs hover:bg-brand-red hover:text-white hover:border-brand-red transition-colors">
