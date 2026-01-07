@@ -19,7 +19,9 @@ import {
   PORTFOLIO_2D,
   SOCIAL_LINKS,
   CERTIFICATES,
-  CONTACT_BUTTONS
+  CONTACT_BUTTONS,
+  CUSTOM_TEXTS,
+  CUSTOM_IMAGES
 } from './constants';
 import { SkillCategory, Project, Experience, Certificate, ArtCategory, ArtItem, ContactButton } from './types';
 
@@ -416,7 +418,7 @@ function App() {
   };
 
   // Export as ready-to-use constants.ts file
-  // FULL MERGE: All localStorage edits are merged directly into data objects
+  // FULL MERGE: All edits from BOTH constants.ts AND localStorage are merged
   const exportAsConstantsFile = () => {
     // 1. Clone all data to avoid mutating state
     const exportSkills = JSON.parse(JSON.stringify(dynamicSkills));
@@ -436,165 +438,149 @@ function App() {
     const remainingTexts: Record<string, string> = {};
     const remainingImages: Record<string, string> = {};
 
-    // 2. Scan ALL localStorage and MERGE edits directly into data objects
+    // Helper function to merge a text key into data objects
+    const mergeTextKey = (k: string, val: string): boolean => {
+      // --- Projects ---
+      for (const proj of exportProjects) {
+        if (k === `proj_title_${proj.id}`) { proj.title = val; return true; }
+        if (k === `proj_desc_${proj.id}`) { proj.description = val; return true; }
+        if (k === `proj_category_${proj.id}` || k === `proj_cat_${proj.id}`) { proj.category = val; return true; }
+        if (k === `proj_engine_${proj.id}` || k === `proj_eng_${proj.id}`) { proj.engine = val; return true; }
+        if (k === `proj_role_${proj.id}`) { proj.role = val; return true; }
+        if (k === `proj_status_${proj.id}`) { proj.status = val; return true; }
+        if (k === `proj_link_${proj.id}`) { proj.link = val; return true; }
+      }
+      // --- Experiences ---
+      for (const exp of exportExperiences) {
+        if (k === `exp_role_${exp.id}`) { exp.role = val; return true; }
+        if (k === `exp_company_${exp.id}`) { exp.company = val; return true; }
+        if (k === `exp_desc_${exp.id}`) { exp.description = val; return true; }
+        if (k === `exp_period_${exp.id}`) { exp.period = val; return true; }
+        if (k === `exp_type_${exp.id}`) { exp.type = val; return true; }
+        if (k === `exp_keynotes_${exp.id}` || k === `exp_notes_${exp.id}`) { exp.keyNotes = val; return true; }
+      }
+      // --- Certificates ---
+      for (const cert of exportCertificates) {
+        if (k === `cert_title_${cert.id}`) { cert.title = val; return true; }
+        if (k === `cert_desc_${cert.id}`) { cert.description = val; return true; }
+        if (k === `cert_issuer_${cert.id}` || k === `cert_iss_${cert.id}`) { cert.issuer = val; return true; }
+        if (k === `cert_date_${cert.id}`) { cert.date = val; return true; }
+      }
+      // --- Skills ---
+      for (const cat of exportSkills) {
+        if (k === `skill_cat_${cat.title}`) { cat.title = val; return true; }
+      }
+      // --- Contact Buttons ---
+      for (const btn of exportContactButtons) {
+        if (k === `contact_label_${btn.id}`) { btn.label = val; return true; }
+        if (k === `contact_text_${btn.id}`) { btn.displayText = val; return true; }
+        if (k === `contact_url_${btn.id}`) { btn.url = val; return true; }
+      }
+      // --- Art Items (description) ---
+      for (const art of exportArt3D) {
+        if (k === `art_title_${art.id}` || k === `art_desc_${art.id}`) { art.description = val; return true; }
+      }
+      for (const art of exportArt2D) {
+        if (k === `art_title_${art.id}` || k === `art_desc_${art.id}`) { art.description = val; return true; }
+      }
+      // --- Education (by index) ---
+      const eduMatch = k.match(/^edu_(\w+)_(\d+)$/);
+      if (eduMatch) {
+        const field = eduMatch[1];
+        const idx = parseInt(eduMatch[2]);
+        if (exportEducation[idx]) {
+          if (field === 'inst') exportEducation[idx].institution = val;
+          else if (field === 'degree') exportEducation[idx].degree = val;
+          else if (field === 'desc') exportEducation[idx].description = val;
+          else if (field === 'score') exportEducation[idx].score = val;
+          else if (field === 'scorelabel') exportEducation[idx].scoreLabel = val;
+          return true;
+        }
+      }
+      // --- Social Links ---
+      if (k.startsWith('social_')) {
+        const platform = k.replace('social_', '');
+        if (platform in exportSocial) {
+          (exportSocial as any)[platform] = val;
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Helper function to merge an image key into data objects
+    const mergeImageKey = (k: string, val: string): boolean => {
+      // --- Projects ---
+      for (const proj of exportProjects) {
+        if (k === `proj_img_${proj.id}`) { proj.image = val; return true; }
+        const ssMatch = k.match(new RegExp(`^proj_ss_(\\d+)_${proj.id}$`));
+        if (ssMatch) {
+          const ssIdx = parseInt(ssMatch[1]);
+          if (!proj.screenshots) proj.screenshots = [];
+          proj.screenshots[ssIdx] = val;
+          return true;
+        }
+      }
+      // --- Experiences ---
+      for (const exp of exportExperiences) {
+        if (k === `exp_img_${exp.id}` || k === `exp_logo_${exp.id}`) { exp.image = val; return true; }
+      }
+      // --- Certificates ---
+      for (const cert of exportCertificates) {
+        if (k === `cert_img_${cert.id}`) { cert.image = val; return true; }
+      }
+      // --- Art Items ---
+      for (const art of exportArt3D) {
+        if (k === `art_item_${art.id}`) { art.url = val; return true; }
+      }
+      for (const art of exportArt2D) {
+        if (k === `art_item_${art.id}`) { art.url = val; return true; }
+      }
+      // --- Education (by index) ---
+      const eduImgMatch = k.match(/^edu_img_(\d+)$/);
+      if (eduImgMatch) {
+        const idx = parseInt(eduImgMatch[1]);
+        if (exportEducation[idx]) { exportEducation[idx].image = val; return true; }
+      }
+      return false;
+    };
+
+    // 2. FIRST: Merge from CUSTOM_TEXTS in constants.ts (already deployed edits)
+    if (CUSTOM_TEXTS) {
+      for (const [k, val] of Object.entries(CUSTOM_TEXTS)) {
+        if (!mergeTextKey(k, val)) {
+          remainingTexts[k] = val;
+        }
+      }
+    }
+
+    // 3. THEN: Merge from CUSTOM_IMAGES in constants.ts
+    if (CUSTOM_IMAGES) {
+      for (const [k, val] of Object.entries(CUSTOM_IMAGES)) {
+        if (!mergeImageKey(k, val)) {
+          remainingImages[k] = val;
+        }
+      }
+    }
+
+    // 4. FINALLY: Merge from localStorage (overwrites constants.ts data with newer edits)
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (!key) continue;
       const val = localStorage.getItem(key);
       if (!val) continue;
-
-      let merged = false;
-
-      // ========== TEXT EDITS ==========
+      // Use helper functions to merge
       if (key.startsWith('text_')) {
         const k = key.replace('text_', '');
-
-        // --- Projects ---
-        for (const proj of exportProjects) {
-          if (k === `proj_title_${proj.id}`) { proj.title = val; merged = true; break; }
-          if (k === `proj_desc_${proj.id}`) { proj.description = val; merged = true; break; }
-          if (k === `proj_category_${proj.id}`) { proj.category = val; merged = true; break; }
-          if (k === `proj_engine_${proj.id}`) { proj.engine = val; merged = true; break; }
-          if (k === `proj_role_${proj.id}`) { proj.role = val; merged = true; break; }
-          if (k === `proj_status_${proj.id}`) { proj.status = val; merged = true; break; }
-          if (k === `proj_link_${proj.id}`) { proj.link = val; merged = true; break; }
+        if (!mergeTextKey(k, val)) {
+          remainingTexts[k] = val;
         }
-        if (merged) continue;
-
-        // --- Experiences ---
-        for (const exp of exportExperiences) {
-          if (k === `exp_role_${exp.id}`) { exp.role = val; merged = true; break; }
-          if (k === `exp_company_${exp.id}`) { exp.company = val; merged = true; break; }
-          if (k === `exp_desc_${exp.id}`) { exp.description = val; merged = true; break; }
-          if (k === `exp_period_${exp.id}`) { exp.period = val; merged = true; break; }
-          if (k === `exp_type_${exp.id}`) { exp.type = val; merged = true; break; }
-          if (k === `exp_keynotes_${exp.id}`) { exp.keyNotes = val; merged = true; break; }
-        }
-        if (merged) continue;
-
-        // --- Certificates ---
-        for (const cert of exportCertificates) {
-          if (k === `cert_title_${cert.id}`) { cert.title = val; merged = true; break; }
-          if (k === `cert_desc_${cert.id}`) { cert.description = val; merged = true; break; }
-          if (k === `cert_issuer_${cert.id}`) { cert.issuer = val; merged = true; break; }
-          if (k === `cert_date_${cert.id}`) { cert.date = val; merged = true; break; }
-        }
-        if (merged) continue;
-
-        // --- Skills ---
-        for (const cat of exportSkills) {
-          if (k === `skill_cat_${cat.title}`) { cat.title = val; merged = true; break; }
-        }
-        if (merged) continue;
-
-        // --- Contact Buttons ---
-        for (const btn of exportContactButtons) {
-          if (k === `contact_label_${btn.id}`) { btn.label = val; merged = true; break; }
-          if (k === `contact_text_${btn.id}`) { btn.displayText = val; merged = true; break; }
-          if (k === `contact_url_${btn.id}`) { btn.url = val; merged = true; break; }
-        }
-        if (merged) continue;
-
-        // --- Art Items ---
-        for (const art of exportArt3D) {
-          if (k === `art_title_${art.id}`) { art.description = val; merged = true; break; }
-        }
-        if (!merged) {
-          for (const art of exportArt2D) {
-            if (k === `art_title_${art.id}`) { art.description = val; merged = true; break; }
-          }
-        }
-        if (merged) continue;
-
-        // --- Education (by index) ---
-        const eduMatch = k.match(/^edu_(\w+)_(\d+)$/);
-        if (eduMatch) {
-          const field = eduMatch[1];
-          const idx = parseInt(eduMatch[2]);
-          if (exportEducation[idx]) {
-            if (field === 'inst') exportEducation[idx].institution = val;
-            else if (field === 'degree') exportEducation[idx].degree = val;
-            else if (field === 'desc') exportEducation[idx].description = val;
-            else if (field === 'score') exportEducation[idx].score = val;
-            else if (field === 'scorelabel') exportEducation[idx].scoreLabel = val;
-            merged = true;
-          }
-        }
-        if (merged) continue;
-
-        // --- Social Links ---
-        if (k.startsWith('social_')) {
-          const platform = k.replace('social_', '');
-          if (platform in exportSocial) {
-            (exportSocial as any)[platform] = val;
-            merged = true;
-          }
-        }
-        if (merged) continue;
-
-        // If not merged, store in remaining
-        remainingTexts[k] = val;
       }
-
-      // ========== IMAGE/MEDIA EDITS ==========
       else if (key.startsWith('media_') || key.startsWith('img_')) {
         const k = key.replace(/^(media_|img_)/, '');
-
-        // --- Projects ---
-        for (const proj of exportProjects) {
-          if (k === `proj_img_${proj.id}`) { proj.image = val; merged = true; break; }
-          // Screenshots
-          const ssMatch = k.match(new RegExp(`^proj_ss_(\\d+)_${proj.id}$`));
-          if (ssMatch) {
-            const ssIdx = parseInt(ssMatch[1]);
-            if (!proj.screenshots) proj.screenshots = [];
-            proj.screenshots[ssIdx] = val;
-            merged = true;
-            break;
-          }
+        if (!mergeImageKey(k, val)) {
+          remainingImages[k] = val;
         }
-        if (merged) continue;
-
-        // --- Experiences ---
-        for (const exp of exportExperiences) {
-          if (k === `exp_img_${exp.id}` || k === `exp_logo_${exp.id}`) {
-            exp.image = val;
-            merged = true;
-            break;
-          }
-        }
-        if (merged) continue;
-
-        // --- Certificates ---
-        for (const cert of exportCertificates) {
-          if (k === `cert_img_${cert.id}`) { cert.image = val; merged = true; break; }
-        }
-        if (merged) continue;
-
-        // --- Art Items ---
-        for (const art of exportArt3D) {
-          if (k === `art_item_${art.id}`) { art.url = val; merged = true; break; }
-        }
-        if (!merged) {
-          for (const art of exportArt2D) {
-            if (k === `art_item_${art.id}`) { art.url = val; merged = true; break; }
-          }
-        }
-        if (merged) continue;
-
-        // --- Education (by index) ---
-        const eduImgMatch = k.match(/^edu_img_(\d+)$/);
-        if (eduImgMatch) {
-          const idx = parseInt(eduImgMatch[1]);
-          if (exportEducation[idx]) {
-            exportEducation[idx].image = val;
-            merged = true;
-          }
-        }
-        if (merged) continue;
-
-        // If not merged, store in remaining
-        remainingImages[k] = val;
       }
     }
 
