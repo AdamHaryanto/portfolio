@@ -1129,6 +1129,9 @@ export const SOCIAL_LINKS = {
                   <button onClick={cancelEditMode} className="p-2 bg-brand-bg text-brand-red border-2 border-brand-red hover:bg-brand-red hover:text-white rounded-full transition-colors tooltip shadow-sm" title="Undo all changes (Cancel Session)">
                     <RotateCcw size={20} />
                   </button>
+                  <button onClick={handleFactoryReset} className="p-2 bg-brand-bg text-brand-red border-2 border-brand-red hover:bg-brand-red hover:text-white rounded-full transition-colors tooltip shadow-sm ml-1" title="Sync from Github / Reset to Default">
+                    <RefreshCw size={20} />
+                  </button>
                   <button onClick={finishEditMode} className="flex items-center gap-2 px-3 py-1.5 rounded-full font-bold border-2 transition-all bg-brand-dark text-white border-brand-dark shadow-retro-sm" title="Selesai Edit">
                     <Check size={16} /> <span className="text-sm">Done</span>
                   </button>
