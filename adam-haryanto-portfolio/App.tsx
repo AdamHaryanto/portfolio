@@ -772,6 +772,16 @@ export const SOCIAL_LINKS = {
       return updated;
     });
   };
+  const updateCertificateDescription = (index: number, newDesc: string) => {
+    setDynamicCertificates(prev => {
+      const updated = prev.map((cert, i) => {
+        if (i === index) return { ...cert, description: newDesc };
+        return cert;
+      });
+      save('user_certificates', updated);
+      return updated;
+    });
+  };
   const addArtCategory = () => {
     const newCat: ArtCategory = { id: `cat_${Date.now()}`, title: "New Portfolio Group", items: [] };
     setArtCategories(prev => {
@@ -1784,6 +1794,7 @@ export const SOCIAL_LINKS = {
                             tag="p"
                             multiline={true}
                             className="text-sm md:text-base leading-relaxed text-brand-dark dark:text-brand-bg opacity-90"
+                            onUpdate={(val) => certIndex >= 0 && updateCertificateDescription(certIndex, val)}
                           />
                         </div>
                       </div>

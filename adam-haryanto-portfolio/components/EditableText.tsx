@@ -9,6 +9,7 @@ interface EditableTextProps {
   tag?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'div';
   multiline?: boolean;
   fullWidth?: boolean;
+  onUpdate?: (newText: string) => void;
 }
 
 const EditableText: React.FC<EditableTextProps> = ({
@@ -18,7 +19,8 @@ const EditableText: React.FC<EditableTextProps> = ({
   className = "",
   tag = 'span',
   multiline = false,
-  fullWidth = true
+  fullWidth = true,
+  onUpdate
 }) => {
   const [text, setText] = useState(initialText);
 
@@ -73,6 +75,7 @@ const EditableText: React.FC<EditableTextProps> = ({
     const newVal = e.target.value;
     setText(newVal);
     localStorage.setItem(`text_${storageKey}`, newVal);
+    if (onUpdate) onUpdate(newVal);
   };
 
   if (isEditing) {
