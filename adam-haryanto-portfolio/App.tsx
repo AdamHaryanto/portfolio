@@ -139,6 +139,100 @@ function App() {
   });
 
   // Toggle Dark Mode
+  const handleFactoryReset = () => {
+    if (confirm('Are you sure you want to reset all data to default? This cannot be undone.')) {
+      localStorage.clear();
+      // Keep theme preference
+      if (document.documentElement.classList.contains('dark')) {
+        localStorage.setItem('theme', 'dark');
+      }
+      window.location.reload();
+    }
+  };
+
+  const cleanupStorage = () => {
+    if (!confirm('This will remove data from deleted items to free up space. Continue?')) return;
+
+    // 1. Collect all valid active IDs
+    const validIds = new Set<string>();
+
+    dynamicProjects.forEach(p => validIds.add(p.id));
+    dynamicExperiences.forEach(e => validIds.add(e.id));
+    dynamicCertificates.forEach(c => validIds.add(c.id));
+    dynamicContactButtons.forEach(b => validIds.add(b.id));
+    artCategories.forEach(cat => {
+      validIds.add(cat.id);
+      cat.items.forEach(item => validIds.add(item.id));
+    });
+
+    // 2. Scan localStorage for orphaned keys
+    let deletedCount = 0;
+    let freedSpace = 0;
+    const keysToRemove: string[] = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+
+      // Skip non-data keys
+      if (key === 'theme' || !key.includes('_')) continue;
+      if (key.startsWith('user_')) continue; // Don't delete main state data
+
+      // Check if key contains an ID-like pattern
+      // Patterns: proj_..., exp_..., cert_..., art_item_..., cat_..., contact_...
+      // Plus legacy: 3d_init_..., 2d_init_...
+
+      let looksLikeOrphan = false;
+      let checked = false;
+
+      // List of prefixes that are followed by an ID
+      const prefixes = ['proj_', 'exp_', 'cert_', 'art_item_', 'cat_', 'contact_', '3d_init_', '2d_init_', '3d_mig_', '2d_mig_'];
+
+      for (const prefix of prefixes) {
+        if (key.includes(prefix)) {
+          checked = true;
+          // Extract ID - assuming ID is the part after the prefix until end or next underscore (if simple/complex)
+          // Actually, our IDs are usually unique enough.
+          // Let's check if ANY valid ID is a substring of this key.
+          // If the key contains a prefix like "proj_" but DOESN'T contain any valid project ID, it's likely orphan.
+
+          // Better strategy: Extract the ID from the key.
+          // Most keys are: text_PREFIX_ID... or img_PREFIX_ID... or just PREFIX_ID...
+          // But IDs can contain underscores.
+
+          // Let's try: Check if the key relates to a specific type
+          if (key.includes('proj_') && !dynamicProjects.some(p => key.includes(p.id))) { looksLikeOrphan = true; break; }
+          if (key.includes('exp_') && !dynamicExperiences.some(e => key.includes(e.id))) { looksLikeOrphan = true; break; }
+          if (key.includes('cert_') && !dynamicCertificates.some(c => key.includes(c.id))) { looksLikeOrphan = true; break; }
+          if (key.includes('contact_') && !dynamicContactButtons.some(b => key.includes(b.id))) { looksLikeOrphan = true; break; }
+
+          // Art items are tricky because ID is art_item_...
+          if (key.includes('art_item_')) {
+            const hasValidArtId = artCategories.some(cat => cat.items.some(item => key.includes(item.id)));
+            if (!hasValidArtId) { looksLikeOrphan = true; break; }
+          }
+        }
+      }
+
+      if (looksLikeOrphan) {
+        keysToRemove.push(key);
+      }
+    }
+
+    // 3. Delete
+    keysToRemove.forEach(key => {
+      const val = localStorage.getItem(key);
+      freedSpace += val ? val.length : 0;
+      localStorage.removeItem(key);
+      deletedCount++;
+    });
+
+    const mbFreed = (freedSpace / 1024 / 1024).toFixed(2);
+    alert(`Cleanup complete!\nRemoved ${deletedCount} unused items.\nFreed ${mbFreed} MB of space.`);
+  };
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+  // Helper to ensure IDs exist
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -149,9 +243,6 @@ function App() {
     }
   }, [isDarkMode]);
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
-
-  // Helper to ensure IDs exist
   const ensureIds = (list: any[], prefix: string) => {
     return list.map((item, i) => {
       if (!item.id) {
@@ -280,18 +371,7 @@ function App() {
     setIsEditMode(false);
   };
 
-  const handleFactoryReset = () => {
-    if (window.confirm("FACTORY RESET: Are you sure? This will wipe ALL data and return to the original portfolio.")) {
-      window.dispatchEvent(new Event('reset-images'));
-      window.dispatchEvent(new Event('reset-data'));
 
-      const keys = ['user_skills', 'user_projects', 'user_experiences', 'user_certificates', 'user_art_categories', 'user_portfolio_3d', 'user_portfolio_2d'];
-      keys.forEach(k => localStorage.removeItem(k));
-      sessionStorage.removeItem('portfolio_backup');
-
-      window.location.reload();
-    }
-  };
 
   // Export all portfolio data as JSON file for permanent storage
   const exportPortfolioData = () => {
@@ -1052,6 +1132,9 @@ export const SOCIAL_LINKS = {
                   <button onClick={finishEditMode} className="flex items-center gap-2 px-3 py-1.5 rounded-full font-bold border-2 transition-all bg-brand-dark text-white border-brand-dark shadow-retro-sm" title="Selesai Edit">
                     <Check size={16} /> <span className="text-sm">Done</span>
                   </button>
+                  <button onClick={cleanupStorage} className="p-2 ml-2 bg-gray-200 text-gray-700 border-2 border-gray-400 hover:bg-brand-red hover:text-white hover:border-brand-red rounded-full transition-colors tooltip shadow-sm" title="Clean Unused Storage (Fix Full Storage)">
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               )}
             </div>
@@ -1105,6 +1188,9 @@ export const SOCIAL_LINKS = {
                         <AlertTriangle size={14} /> Factory Reset
                       </button>
                     </div>
+                    <button onClick={cleanupStorage} className="w-full flex justify-center items-center gap-2 font-bold text-gray-500 border-2 border-gray-300 rounded-lg py-2 text-xs hover:bg-brand-red hover:text-white hover:border-brand-red transition-colors">
+                      <Trash2 size={14} /> Clean Unused Storage
+                    </button>
                     <div className="flex gap-2">
                       <button onClick={exportPortfolioData} className="flex-1 flex justify-center items-center gap-2 font-bold text-brand-blue border-2 border-brand-blue rounded-lg py-2 text-sm">
                         <Download size={16} /> Backup JSON
