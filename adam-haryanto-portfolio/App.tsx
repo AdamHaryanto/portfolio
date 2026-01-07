@@ -489,6 +489,29 @@ function App() {
           if (!match) match = exportArt2D.find((a: any) => coreKey.includes(a.id));
           if (match) { match.title = val; merged = true; }
         }
+        // Education (by index: edu_inst_0, edu_degree_1, etc.)
+        else if (coreKey.startsWith('edu_')) {
+          const parts = coreKey.split('_');
+          const idxStr = parts[parts.length - 1];
+          const idx = parseInt(idxStr);
+          if (!isNaN(idx) && exportEducation[idx]) {
+            const edu = exportEducation[idx];
+            if (coreKey.includes('inst')) edu.institution = val;
+            else if (coreKey.includes('degree')) edu.degree = val;
+            else if (coreKey.includes('desc')) edu.description = val;
+            else if (coreKey.includes('score_label')) edu.scoreLabel = val;
+            else if (coreKey.includes('score')) edu.score = val;
+            merged = true;
+          }
+        }
+        // Social Links (social_instagram, social_github, etc.)
+        else if (coreKey.startsWith('social_')) {
+          const platform = coreKey.replace('social_', '');
+          if (platform in exportSocial) {
+            (exportSocial as any)[platform] = val;
+            merged = true;
+          }
+        }
 
         if (!merged) {
           customTexts[coreKey] = val;
@@ -520,6 +543,14 @@ function App() {
           if (!match) match = exportArt2D.find((a: any) => coreKey.includes(a.id));
           if (match) { match.url = val; merged = true; }
         }
+        // Education Images (edu_img_0, edu_img_1, etc.)
+        else if (coreKey.startsWith('edu_img_')) {
+          const idx = parseInt(coreKey.replace('edu_img_', ''));
+          if (!isNaN(idx) && exportEducation[idx]) {
+            exportEducation[idx].image = val;
+            merged = true;
+          }
+        }
 
         if (!merged) {
           customImages[coreKey] = val;
@@ -531,7 +562,7 @@ function App() {
     const tsCode = `// Auto-generated from portfolio export on ${new Date().toISOString()}
 // Replace your existing constants.ts with this file to make changes permanent
 
-import { SkillCategory, Project, Experience, Certificate, ContactButton, ArtItem } from './types';
+import { SkillCategory, Project, Experience, Certificate, ContactButton, ArtItem, Education } from './types';
 
 export const SKILL_CATEGORIES: SkillCategory[] = ${JSON.stringify(exportSkills, null, 2)};
 
@@ -557,34 +588,15 @@ export const CUSTOM_TEXTS: Record<string, string> = ${JSON.stringify(customTexts
 // ==================================================
 export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(customImages, null, 2)};
 
-// Keep your existing EDUCATION and SOCIAL_LINKS
-export const EDUCATION = [
-  {
-    institution: "Universitas Brawijaya",
-    degree: "S1 Teknik Elektro",
-    description: "Aktif dalam komunitas game development.",
-    score: "3.5+",
-    scoreLabel: "GPA",
-    image: "https://picsum.photos/seed/ub/200/200"
-  },
-  {
-    institution: "SMAK Cor Jesu Malang",
-    degree: "IPA",
-    description: "Fokus pada sains dan teknologi.",
-    score: "85+",
-    scoreLabel: "Avg Score",
-    image: "https://picsum.photos/seed/smak/200/200"
-  }
-];
+// ==================================================
+// EDUCATION - Merged with local edits
+// ==================================================
+export const EDUCATION: Education[] = ${JSON.stringify(exportEducation, null, 2)};
 
-export const SOCIAL_LINKS = {
-  instagram: "https://instagram.com/adamharyanto",
-  linkedin: "https://linkedin.com/in/adamharyanto",
-  github: "https://github.com/adamharyanto",
-  itch: "https://adamharyanto.itch.io",
-  email: "adamharyanto@email.com",
-  phone: "+62 812 3456 7890"
-};
+// ==================================================
+// SOCIAL LINKS - Merged with local edits  
+// ==================================================
+export const SOCIAL_LINKS = ${JSON.stringify(exportSocial, null, 2)};
 `;
 
     // Download the TypeScript file
