@@ -1821,7 +1821,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                             }}
                           >
                             <EditableText
-                              initialText={`Artwork #${itemIndex + 1}`}
+                              initialText={item.description || `Artwork #${itemIndex + 1}`}
                               storageKey={`art_desc_${item.id}`}
                               isEditing={isEditMode}
                               className="art-title text-white font-black uppercase tracking-wider drop-shadow-lg text-center"
