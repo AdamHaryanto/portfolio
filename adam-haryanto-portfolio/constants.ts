@@ -1,4 +1,4 @@
-// Auto-generated from portfolio export on 2026-01-07T17:34:51.819Z
+// Auto-generated from portfolio export on 2026-01-08T07:41:40.437Z
 // 100% LOCAL DATA - Replace your constants.ts with this file
 
 import { SkillCategory, Project, Experience, Certificate, ContactButton, ArtItem, Education } from './types';
@@ -446,7 +446,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://www.instagram.com/p/Cu3_R2vrgUt/"
     ],
     "type": "image",
-    "description": "Sci-fi Gun (video)"
+    "description": "Sci-fi Pistol"
   },
   {
     "id": "art_item_1767547553902",
@@ -455,7 +455,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://www.instagram.com/p/CpFskiVgrkt/"
     ],
     "type": "image",
-    "description": "Anime Style Waterfall (Video)"
+    "description": "Anime Style Waterfall"
   },
   {
     "id": "art_item_1767547554132",
@@ -464,7 +464,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://www.instagram.com/p/CsBI2hCrGMW/?img_index=2"
     ],
     "type": "image",
-    "description": "Mosque (Video)"
+    "description": "Mosque"
   },
   {
     "id": "art_item_1767632012911",
@@ -483,7 +483,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1nrywUGDokdIXxEg-ObhNZo2xdP7uqfv2"
     ],
     "type": "image",
-    "description": "Sniper Rifle & Grenade"
+    "description": "SNiper & grenade"
   },
   {
     "id": "art_item_1767632016825",
@@ -495,7 +495,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1uj8AMIB6sdJbZTRu6Rnf6Sxr4wSqP0Tw"
     ],
     "type": "image",
-    "description": "Weapon & Armor Pack"
+    "description": "Weapon & armor Pack"
   },
   {
     "id": "art_item_1767632017003",
@@ -516,7 +516,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1fg-TC8UrOhnDQDSpcIBU1-J1PU8rJFZU"
     ],
     "type": "image",
-    "description": "Stylized house #1"
+    "description": "Low poly Stylized house"
   },
   {
     "id": "art_item_1767667657912",
@@ -525,7 +525,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1hHUPkJB5ZadOB-emAw39dd5rAImNSDkp"
     ],
     "type": "image",
-    "description": "Stylized house #2"
+    "description": "Stylized House"
   },
   {
     "id": "art_item_1767667658154",
@@ -534,7 +534,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1vMaO2J7vC-SzxmkGdp7k9gzbaDKfrQU2"
     ],
     "type": "image",
-    "description": "Low Poly Character #1"
+    "description": "Character #1"
   },
   {
     "id": "art_item_1767667986963",
@@ -543,7 +543,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/17YpI9rG3MCSPMoIC2HIwdmmmJUq19J2R"
     ],
     "type": "image",
-    "description": "Low Poly Character #2"
+    "description": "Character #2"
   },
   {
     "id": "art_item_1767667987119",
@@ -552,7 +552,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1Q1-5GmIIWTfHwJLiJen1A66WTXFBzkgo"
     ],
     "type": "image",
-    "description": "Low Poly CHaracter #3"
+    "description": "Character #3"
   },
   {
     "id": "art_item_1767671127502",
@@ -570,7 +570,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://drive.google.com/file/d/1Kgi_DUxY2Ez6d2LBNXuPnONyM75f4t_e/view?usp=sharing"
     ],
     "type": "image",
-    "description": "Environment prop #1"
+    "description": "Environment Prop #1"
   },
   {
     "id": "art_item_1767671127859",
@@ -579,7 +579,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1TVP0J63gb_LkLSU0nkvFZB-kgXrpurEi"
     ],
     "type": "image",
-    "description": "Environment prop #2"
+    "description": "Environment Prop #2"
   },
   {
     "id": "art_item_1767671128023",
@@ -588,7 +588,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1nH6D_TEVbstgO7n0szyhIiQDqaFJ5cyq"
     ],
     "type": "image",
-    "description": "Stylized tree"
+    "description": "Stylized Tree #1"
   },
   {
     "id": "art_item_1767671128187",
@@ -597,7 +597,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1-1oY_iIW4SDgo7lcz3jT64NaWqUd4wrU"
     ],
     "type": "image",
-    "description": "Stylized tree Pack"
+    "description": "Stylized Tree #2"
   },
   {
     "id": "art_item_1767672890016",
@@ -606,7 +606,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/19tYfWW5DyVMcObhqp2eZerxamHkAN6Ig"
     ],
     "type": "image",
-    "description": "PLastic Bottle"
+    "description": "Product Render #1"
   },
   {
     "id": "art_item_1767672890174",
@@ -615,7 +615,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/14oDDDXMr1FsW02JumECNW9H5kBNreqQT"
     ],
     "type": "image",
-    "description": "Roblox Character Model"
+    "description": "rOBLOX cHARACTER"
   },
   {
     "id": "art_item_1767672890304",
@@ -624,7 +624,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/15ygkphPaU74EwJseVE7ZhfpM-kjYJN_E"
     ],
     "type": "image",
-    "description": "Magic Staff"
+    "description": "mAGIC sTAFF"
   },
   {
     "id": "art_item_1767672890424",
@@ -633,7 +633,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1bVdfbcy8LBYE3siBnmC-7JKNTs1fM6mk"
     ],
     "type": "image",
-    "description": "Stylized Melee weapon #1"
+    "description": "mELEE wEAPON PACK #1"
   },
   {
     "id": "art_item_1767672902114",
@@ -642,7 +642,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1jN0u21ex_bXiKHoDJwiEWxwV36Mow0ZW"
     ],
     "type": "image",
-    "description": "STYlized Melee Weapon #2"
+    "description": "mELEE wEAPON PACK #2"
   },
   {
     "id": "art_item_1767672902288",
@@ -652,7 +652,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1IBGuyvqd701LmlO2AUfhCg6jjeiA1srE"
     ],
     "type": "image",
-    "description": "Stylized Waterfall"
+    "description": "sTYLIZED wATERFALL"
   },
   {
     "id": "art_item_1767672913397",
@@ -666,7 +666,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1nbCGwbUGiGhu5TVMxNwiMP7bXBtjBaq4"
     ],
     "type": "image",
-    "description": "KATANA"
+    "description": "kATANA"
   },
   {
     "id": "art_item_1767674054458",
@@ -678,7 +678,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1fWx_eCXlsprPyNCkGG30Q_i7pHsoFUz3"
     ],
     "type": "image",
-    "description": "SMARTPHONE MODEL"
+    "description": "Product Render #2"
   },
   {
     "id": "art_item_1767674054615",
@@ -687,7 +687,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1IU1FstlxWDn0fY4sOXlcZ4dOy-9RtSTk"
     ],
     "type": "image",
-    "description": "pRODUCT RENDER"
+    "description": "Product Render #3"
   },
   {
     "id": "art_item_1767674054772",
@@ -696,7 +696,7 @@ export const PORTFOLIO_3D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1U_uL5cD-n_3LMlRlMeUNLR7T6n7yleg0"
     ],
     "type": "image",
-    "description": "GAMETECH STudio POster Background"
+    "description": "gAMETECH sTUDIO bACKGROUND POSTER"
   }
 ];
 
@@ -735,7 +735,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1iSh-uWwvFYkWBb8hhgA1gG2V5R-dttCR"
     ],
     "type": "image",
-    "description": "Music Cover #1"
+    "description": "Music Cover"
   },
   {
     "id": "art_item_1767706912246",
@@ -745,7 +745,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1orvUmZkhOyCrNfVF0d0q1VajS-M8czcl"
     ],
     "type": "image",
-    "description": "Music Cover #2"
+    "description": "Music Cover"
   },
   {
     "id": "art_item_1767706912462",
@@ -754,7 +754,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1Fxu7W-YoVnCKuIoqAXzWe8AGRx9Zfxvf"
     ],
     "type": "image",
-    "description": "Music Cover #3"
+    "description": "Music Cover"
   },
   {
     "id": "art_item_1767706912717",
@@ -790,7 +790,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1fdFCiDlaYTTfmVmSX7FNwnqZTi9M9Dw7"
     ],
     "type": "image",
-    "description": "POster #5"
+    "description": "Poster #5"
   },
   {
     "id": "art_item_1767707253641",
@@ -836,7 +836,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1w5qrYbaffqt65VfZC_ZKSYQfKMo_kr7V"
     ],
     "type": "image",
-    "description": "IDBI Feed #1"
+    "description": "Graphic Design #1"
   },
   {
     "id": "art_item_1767707386743",
@@ -846,7 +846,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/14GTp_bzcKnyfopGQYSakNzd8eHCRA3ft"
     ],
     "type": "image",
-    "description": "IDBI Feed #2"
+    "description": "Graphic Design #2"
   },
   {
     "id": "art_item_1767707386906",
@@ -856,7 +856,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1hT6U6Ko8OPThtefESDdz3_LbVkgdNzYE"
     ],
     "type": "image",
-    "description": "IDBI Feed #3"
+    "description": "Graphic Design #3"
   },
   {
     "id": "art_item_1767707391313",
@@ -866,7 +866,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1Y3x3NuIe-fTRLaIq5dVD9m_8AUKffsvG"
     ],
     "type": "image",
-    "description": "IDBI Feed #4"
+    "description": "Graphic Design #4"
   },
   {
     "id": "art_item_1767707885542",
@@ -875,7 +875,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1z6V3GzcymYyy3jwNl8yLE2wbOH2MYw5v"
     ],
     "type": "image",
-    "description": "GAmetech Student UNION Graphic Standard Manual"
+    "description": "GAMETECH STUDENT UNION GRAPHIC STANDARD MANUAL"
   },
   {
     "id": "art_item_1767707885706",
@@ -884,7 +884,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1JEFC75G1DayAXS0Saic6BArilpO228m7"
     ],
     "type": "image",
-    "description": "GAMETECH STudent Union Social media manager"
+    "description": "GAMETECH STUDENT UNION SOCIAL MEDIA MANAGER"
   },
   {
     "id": "art_item_1767707885853",
@@ -893,7 +893,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1OFBh53Ea-jLAhh99MW8e5Nl8HZDppWU6"
     ],
     "type": "image",
-    "description": "GAMETECH STudio Social media manager"
+    "description": "GAmetech Studio Social Media Manager"
   },
   {
     "id": "art_item_1767707885996",
@@ -902,7 +902,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1UqTRAywN6aIMF3G_hJL6HolrRYv-bQK-"
     ],
     "type": "image",
-    "description": "UI PACK #1"
+    "description": "UI Pack #1"
   },
   {
     "id": "art_item_1767707886160",
@@ -920,7 +920,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1xQqD3XQxixMgtMaK8xp5oeIkE7Ujeb75"
     ],
     "type": "image",
-    "description": "UI PACK #3"
+    "description": "UI Pack #2"
   },
   {
     "id": "art_item_1767708413556",
@@ -929,7 +929,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1rhQxJ8PtpGlW-1VnIyFednD3anf4nS3b"
     ],
     "type": "image",
-    "description": "UI PACK #4"
+    "description": "UI Pack #3"
   },
   {
     "id": "art_item_1767708413754",
@@ -1014,7 +1014,7 @@ export const PORTFOLIO_2D: ArtItem[] = [
       "https://lh3.googleusercontent.com/d/1NrpZQsNXzb4_Tw13IUZ3e8H3NIFVXe1Y"
     ],
     "type": "image",
-    "description": "logo #8"
+    "description": "Logo #8"
   },
   {
     "id": "art_item_1767708967947",
