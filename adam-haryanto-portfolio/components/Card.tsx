@@ -5,7 +5,7 @@ interface CardProps {
   className?: string;
   variant?: 'orange' | 'blue' | 'yellow' | 'green' | 'white' | 'red';
   noShadow?: boolean;
-  disableHover?: boolean; // New prop to disable hover movement
+  disableHover?: boolean;
 }
 
 const Card: React.FC<CardProps> = ({ 
@@ -31,18 +31,11 @@ const Card: React.FC<CardProps> = ({
       return 'text-brand-dark';
   };
 
-  // Logic: 
-  // If noShadow is true -> No shadow, no movement.
-  // If noShadow is false:
-  //    - Always show shadow-retro.
-  //    - If disableHover is true -> No hover effects.
-  //    - If disableHover is false -> Add hover effects (remove shadow, translate).
-
   return (
     <div className={`
-      relative border-4 border-brand-dark dark:border-brand-bg rounded-xl
+      relative min-w-0 max-w-full border-[3px] border-brand-dark dark:border-brand-bg rounded-2xl
       ${getBgColor()} ${getTextColor()}
-      ${noShadow ? '' : `shadow-retro dark:shadow-retro-light ${disableHover ? '' : 'hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]'}`}
+      ${noShadow ? '' : `shadow-retro dark:shadow-retro-light ${disableHover ? '' : 'hover:-translate-y-0.5 hover:shadow-retro-lg'}`}
       transition-all duration-200 ease-in-out
       overflow-hidden
       ${className}

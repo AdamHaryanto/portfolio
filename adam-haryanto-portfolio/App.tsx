@@ -3,11 +3,9 @@ import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linked
 import Section from './components/Section';
 import Card from './components/Card';
 import Button from './components/Button';
-import SearchHeader from './components/SearchHeader';
 import EditableImage from './components/EditableImage';
 import EditableMedia from './components/EditableMedia';
 import EditableText from './components/EditableText';
-import IntroOverlay from './components/IntroOverlay';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import ThumbnailScrollContainer from './components/ThumbnailScrollContainer';
 import {
@@ -28,7 +26,6 @@ import { SkillCategory, Project, Experience, Certificate, ArtCategory, ArtItem, 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
   const [portfolioDropdownOpen, setPortfolioDropdownOpen] = useState(false);
 
   // Dark Mode State
@@ -1158,21 +1155,20 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
 
   return (
     <>
-      {showIntro && <IntroOverlay onComplete={() => setShowIntro(false)} />}
-
-      <div key={appKey} className={`min-h-screen font-sans selection:bg-brand-orange selection:text-white pb-20 relative transition-colors duration-300 ${isDarkMode ? 'text-brand-bg' : 'text-brand-dark'} ${showIntro ? 'overflow-hidden h-screen' : ''}`}>
+      <div key={appKey} className={`portfolio-shell min-h-screen overflow-x-clip font-sans selection:bg-brand-orange selection:text-white relative transition-colors duration-300 ${isDarkMode ? 'text-brand-bg' : 'text-brand-dark'}`}>
         <BackgroundAnimation isDarkMode={isDarkMode} />
 
         {/* Navbar */}
-        <nav className="sticky top-0 z-50 bg-brand-bg/95 dark:bg-brand-dark/95 backdrop-blur-sm border-b-4 border-brand-dark dark:border-brand-bg py-3 px-4 md:px-8 transition-colors duration-300">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <nav className="sticky top-0 z-50 bg-brand-bg/90 dark:bg-brand-dark/90 backdrop-blur-xl border-b-[3px] border-brand-dark dark:border-brand-bg py-2 px-4 sm:px-6 transition-colors duration-300" aria-label="Main navigation">
+          <div className="w-full min-w-0 max-w-6xl mx-auto flex justify-between items-center gap-3">
             <div className="flex items-center gap-4">
-              <a href="#" onClick={(e) => scrollToSection(e, '#')} className="font-black text-xl tracking-tighter border-2 border-brand-dark dark:border-brand-bg px-3 py-1 rounded-lg bg-white dark:bg-brand-dark-bg dark:text-brand-bg shadow-retro-sm dark:shadow-retro-sm-light transition-all">
-                Adam Haryanto - Portfolio
+              <a href="#" onClick={(e) => scrollToSection(e, '#')} className="min-h-11 inline-flex items-center font-black text-base tracking-tight border-2 border-brand-dark dark:border-brand-bg px-3 rounded-xl bg-white dark:bg-brand-dark-bg dark:text-brand-bg shadow-retro-sm dark:shadow-retro-sm-light transition-all">
+                <span className="sm:hidden">AH.</span>
+                <span className="hidden sm:inline">Adam Haryanto</span>
               </a>
             </div>
 
-            <div className="hidden md:flex items-center space-x-6">
+            <div className="hidden lg:flex items-center gap-4 xl:gap-5 text-sm">
               <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">About</a>
               <a href="#education" onClick={(e) => scrollToSection(e, '#education')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Education</a>
               <a href="#experience" onClick={(e) => scrollToSection(e, '#experience')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Experience</a>
@@ -1182,6 +1178,8 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                 <button
                   className="flex items-center gap-1 font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4"
                   onClick={() => setPortfolioDropdownOpen(!portfolioDropdownOpen)}
+                  aria-expanded={portfolioDropdownOpen}
+                  aria-haspopup="true"
                 >
                   Portfolio <ChevronDown size={16} />
                 </button>
@@ -1201,6 +1199,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                 onClick={toggleDarkMode}
                 className="p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg text-brand-dark dark:text-brand-bg hover:scale-105 transition-transform"
                 title="Toggle Dark Mode"
+                aria-label={isDarkMode ? 'Use light mode' : 'Use dark mode'}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -1233,10 +1232,11 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
               )}
             </div>
 
-            <div className="flex md:hidden gap-2">
+            <div className="flex lg:hidden gap-2">
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg text-brand-dark dark:text-brand-bg active:bg-gray-100"
+                className="min-w-11 min-h-11 inline-flex items-center justify-center rounded-full border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg text-brand-dark dark:text-brand-bg active:bg-gray-100"
+                aria-label={isDarkMode ? 'Use light mode' : 'Use dark mode'}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -1245,7 +1245,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   <Check size={20} />
                 </button>
               )}
-              <button className="p-2 border-2 border-brand-dark dark:border-brand-bg rounded-md bg-white dark:bg-brand-dark text-brand-dark dark:text-brand-bg active:bg-gray-100" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <button className="min-w-11 min-h-11 inline-flex items-center justify-center border-2 border-brand-dark dark:border-brand-bg rounded-xl bg-white dark:bg-brand-dark text-brand-dark dark:text-brand-bg active:bg-gray-100" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle navigation menu" aria-expanded={isMenuOpen}>
                 {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             </div>
@@ -1253,8 +1253,8 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
 
           {/* Mobile Menu */}
           {isMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 w-full bg-brand-bg dark:bg-brand-dark-bg border-b-4 border-brand-dark dark:border-brand-bg shadow-xl z-50">
-              <div className="flex flex-col p-4 space-y-4">
+            <div className="lg:hidden absolute top-full left-0 w-full bg-brand-bg dark:bg-brand-dark-bg border-b-[3px] border-brand-dark dark:border-brand-bg shadow-xl z-50 max-h-[calc(100vh-64px)] overflow-y-auto">
+              <div className="flex flex-col p-4 space-y-3">
                 <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">About</a>
                 <a href="#education" onClick={(e) => scrollToSection(e, '#education')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Education</a>
                 <a href="#experience" onClick={(e) => scrollToSection(e, '#experience')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Experience</a>
@@ -1307,57 +1307,110 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           </div>
         )}
 
-        <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-12">
-          <SearchHeader />
-          <Card className="p-8 md:p-12 max-w-md w-full text-center" variant="green">
-            <h2 className="text-4xl md:text-5xl font-black mb-4 text-brand-dark uppercase">Portfolio</h2>
-            <EditableText initialText="Game Developer & Technical Artist" storageKey="hero_subtitle" isEditing={isEditMode} tag="p" className="font-bold text-xl mb-8 opacity-80 text-brand-dark" />
-            <div className="flex flex-col gap-4">
-              <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="w-full">
-                <Button fullWidth variant="secondary">Start Exploring</Button>
-              </a>
-              <a href={SOCIAL_LINKS.itch} target="_blank" rel="noreferrer" className="w-full">
-                <Button fullWidth variant="outline" className="bg-white text-brand-dark">Visit Itch.io</Button>
-              </a>
+        <header className="px-4 sm:px-6 pt-7 pb-4 sm:pt-10 sm:pb-6">
+          <div className="w-full min-w-0 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[1.45fr_0.55fr] gap-4 sm:gap-6">
+            <Card className="p-5 sm:p-7 lg:p-9" variant="green" disableHover>
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <span className="inline-flex items-center gap-2 bg-white border-2 border-brand-dark rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider text-brand-dark">
+                  <span className="w-2 h-2 rounded-full bg-brand-green border border-brand-dark" />
+                  Open to collaboration
+                </span>
+                <span className="inline-flex bg-brand-dark text-white rounded-full px-3 py-1 text-xs font-bold">Indonesia</span>
+              </div>
+
+              <p className="text-sm sm:text-base font-black uppercase tracking-[0.18em] text-brand-dark/70 mb-2">Game Developer Portfolio</p>
+              <h1 className="text-[clamp(2.5rem,9vw,5.5rem)] leading-[0.9] font-black tracking-[-0.06em] text-brand-dark">
+                <span className="block">Adam</span>
+                <span className="block">Haryanto</span>
+              </h1>
+              <EditableText
+                initialText="Game Developer & Technical Artist"
+                storageKey="hero_subtitle"
+                isEditing={isEditMode}
+                tag="p"
+                className="text-balance font-black text-xl sm:text-2xl mt-4 text-brand-dark"
+              />
+              <p className="max-w-2xl mt-3 text-sm sm:text-base font-semibold leading-relaxed text-brand-dark/80">
+                I build playful interactive experiences and support them end-to-end through programming, game design, 2D/3D art, and technical art.
+              </p>
+
+              <div className="grid grid-cols-2 sm:flex sm:flex-row sm:flex-wrap gap-3 mt-5">
+                <a href="#portfolio" onClick={(e) => scrollToSection(e, '#portfolio')} className="col-span-2">
+                  <Button variant="secondary" className="w-full sm:w-auto gap-2">View Projects <ExternalLink size={17} /></Button>
+                </a>
+                <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')}>
+                  <Button variant="outline" className="w-full sm:w-auto bg-white text-brand-dark">Contact Me</Button>
+                </a>
+                <a href={SOCIAL_LINKS.itch} target="_blank" rel="noreferrer">
+                  <Button variant="outline" className="w-full sm:w-auto bg-transparent text-brand-dark">Itch.io</Button>
+                </a>
+              </div>
+
+              <div className="flex flex-wrap gap-x-5 gap-y-2 mt-6 pt-5 border-t-2 border-brand-dark/20 text-sm font-black text-brand-dark">
+                <a href={SOCIAL_LINKS.github} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 hover:underline"><Github size={18} /> GitHub</a>
+                <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 hover:underline"><Linkedin size={18} /> LinkedIn</a>
+                <a href={`mailto:${SOCIAL_LINKS.email}`} className="inline-flex min-h-11 items-center gap-2 hover:underline"><Mail size={18} /> Email</a>
+              </div>
+            </Card>
+
+            <div className="min-w-0 grid grid-cols-2 lg:grid-cols-1 gap-4">
+              <Card variant="orange" className="p-4 sm:p-5 flex flex-col justify-between min-h-32" disableHover>
+                <span className="text-xs font-black uppercase tracking-widest text-brand-dark/70">Experience</span>
+                <strong className="text-3xl sm:text-4xl font-black text-brand-dark">3+ Years</strong>
+                <span className="text-xs sm:text-sm font-bold text-brand-dark/75">Production and game jam workflows</span>
+              </Card>
+              <Card variant="blue" className="p-4 sm:p-5 flex flex-col justify-between min-h-32" disableHover>
+                <span className="text-xs font-black uppercase tracking-widest text-brand-dark/70">Selected Work</span>
+                <strong className="text-3xl sm:text-4xl font-black text-brand-dark">{dynamicProjects.length}</strong>
+                <span className="text-xs sm:text-sm font-bold text-brand-dark/75">Playable and in-development projects</span>
+              </Card>
+              <Card variant="yellow" className="col-span-2 lg:col-span-1 p-4 sm:p-5" disableHover>
+                <span className="text-xs font-black uppercase tracking-widest text-brand-dark/70">Core Toolkit</span>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {['Unity', 'C#', 'Roblox Studio', 'Lua', 'Blender', '2D / 3D Art'].map((tool) => (
+                    <span key={tool} className="bg-white/80 border-2 border-brand-dark rounded-full px-3 py-1 text-xs font-black text-brand-dark">{tool}</span>
+                  ))}
+                </div>
+              </Card>
             </div>
-          </Card>
-        </div>
+          </div>
+        </header>
 
         {/* Sections */}
         <Section id="about" title="About Me" isEditing={isEditMode} storageKey="title_about">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="h-full" variant="white">
-              <EditableImage src="https://picsum.photos/seed/adam/600/800" alt="Adam Haryanto" className="w-full h-full object-cover min-h-[300px]" storageKey="profile_main" isEditing={isEditMode} />
+          <div className="grid grid-cols-1 md:grid-cols-[0.75fr_1.25fr] gap-4 sm:gap-6">
+            <Card className="h-full min-h-64 md:min-h-0" variant="white" disableHover>
+              <EditableImage src="https://picsum.photos/seed/adam/600/800" alt="Portrait of Adam Haryanto" className="w-full h-full max-h-[420px] object-cover" storageKey="profile_main" isEditing={isEditMode} />
             </Card>
-            <div className="md:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card variant="orange" className="p-6 flex flex-col justify-center">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card variant="orange" className="p-4 sm:p-5 flex flex-col justify-center" disableHover>
                   <span className="text-sm font-bold opacity-70 mb-1 text-brand-dark">Role</span>
-                  <EditableText initialText="Indie Game Developer" storageKey="role_card" isEditing={isEditMode} tag="h3" className="text-3xl font-black text-white drop-shadow-md" />
+                  <EditableText initialText="Indie Game Developer" storageKey="role_card" isEditing={isEditMode} tag="h3" className="text-2xl font-black text-white drop-shadow-md" />
                 </Card>
-                <Card variant="white" className="p-6 flex flex-col justify-center">
-                  <EditableText initialText='"Finish what you start"' storageKey="motto_card" isEditing={isEditMode} tag="h3" className="text-2xl font-bold italic text-brand-dark dark:text-brand-bg" />
+                <Card variant="white" className="p-4 sm:p-5 flex flex-col justify-center" disableHover>
+                  <EditableText initialText='"Finish what you start"' storageKey="motto_card" isEditing={isEditMode} tag="h3" className="text-xl font-bold italic text-brand-dark dark:text-brand-bg" />
                   <span className="text-sm font-bold opacity-50 mt-2 text-right text-brand-dark dark:text-brand-bg">- My Motto</span>
                 </Card>
               </div>
-              <Card variant="blue" className="p-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-brand-dark rounded-full p-2 text-white">
-                    <span className="font-bold text-xl px-2">?</span>
+              <Card variant="blue" className="p-5 sm:p-6" disableHover>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="bg-brand-dark rounded-full w-9 h-9 inline-flex items-center justify-center text-white">
+                    <span className="font-bold text-lg">?</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-brand-dark">Who am I?</h3>
+                  <h3 className="text-xl font-black text-brand-dark">Who am I?</h3>
                 </div>
-                <EditableText initialText="I'm a Game Developer with over 3 years of experience. My skills include 3D modeling, C# and Lua programming, 2D art, graphic design, game design, and project management. Proficient in using Unity Engine and Roblox Studio. Highly adaptable to production workflows and experienced in team collaboration." storageKey="about_desc" isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-lg leading-relaxed text-brand-dark/90" />
+                <EditableText initialText="I'm a Game Developer with over 3 years of experience. My skills include 3D modeling, C# and Lua programming, 2D art, graphic design, game design, and project management. Proficient in using Unity Engine and Roblox Studio. Highly adaptable to production workflows and experienced in team collaboration." storageKey="about_desc" isEditing={isEditMode} tag="p" multiline={true} className="font-semibold text-sm sm:text-base leading-relaxed text-brand-dark/90" />
               </Card>
             </div>
           </div>
         </Section>
 
         <Section id="education" title="Education" isEditing={isEditMode} storageKey="title_education">
-          <div className="space-y-8">
+          <div className="space-y-4">
             {EDUCATION.map((edu, index) => (
-              <Card key={index} variant={index === 0 ? 'blue' : 'orange'} className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                <div className="w-24 h-auto md:w-32 flex-shrink-0 border-4 border-brand-dark rounded-lg overflow-hidden bg-white">
+              <Card key={index} variant={index === 0 ? 'blue' : 'orange'} className="p-4 sm:p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center" disableHover>
+                <div className="w-16 sm:w-20 h-auto flex-shrink-0 border-[3px] border-brand-dark rounded-xl overflow-hidden bg-white">
                   <EditableMedia
                     src={edu.image || "https://picsum.photos/seed/edu/200/200"}
                     alt={edu.institution}
@@ -1368,12 +1421,12 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   />
                 </div>
                 <div className="flex-1 text-brand-dark">
-                  <EditableText initialText={edu.institution} storageKey={`edu_inst_${index}`} isEditing={isEditMode} tag="h3" className="text-2xl md:text-3xl font-black mb-2" />
-                  <EditableText initialText={edu.degree} storageKey={`edu_degree_${index}`} isEditing={isEditMode} tag="p" className="text-xl font-bold opacity-80 mb-4" />
-                  <EditableText initialText={edu.description} storageKey={`edu_desc_${index}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium leading-relaxed" />
+                  <EditableText initialText={edu.institution} storageKey={`edu_inst_${index}`} isEditing={isEditMode} tag="h3" className="text-xl sm:text-2xl font-black mb-1" />
+                  <EditableText initialText={edu.degree} storageKey={`edu_degree_${index}`} isEditing={isEditMode} tag="p" className="text-base sm:text-lg font-bold opacity-80 mb-2" />
+                  <EditableText initialText={edu.description} storageKey={`edu_desc_${index}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed" />
                 </div>
-                <div className="bg-brand-dark/10 p-6 rounded-xl border-2 border-brand-dark min-w-[150px] text-center text-brand-dark">
-                  <EditableText initialText={edu.score} storageKey={`edu_score_${index}`} isEditing={isEditMode} tag="span" className="block text-4xl font-black" />
+                <div className="bg-white/50 px-4 py-3 rounded-xl border-2 border-brand-dark min-w-28 text-center text-brand-dark">
+                  <EditableText initialText={edu.score} storageKey={`edu_score_${index}`} isEditing={isEditMode} tag="span" className="block text-2xl sm:text-3xl font-black" />
                   <EditableText initialText={edu.scoreLabel} storageKey={`edu_scorelabel_${index}`} isEditing={isEditMode} tag="span" className="text-xs font-bold uppercase tracking-wider opacity-70" />
                 </div>
               </Card>
@@ -1382,20 +1435,20 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         </Section>
 
         <Section id="experience" title="Experience" isEditing={isEditMode} storageKey="title_experience">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {dynamicExperiences.map((exp, index) => (
               <div key={exp.id} className="relative group/exp">
                 <Card variant="white" className="flex flex-col h-full" noShadow={false}>
-                  <div className="w-full h-48 flex-shrink-0 relative group">
+                  <div className="w-full h-32 sm:h-40 flex-shrink-0 relative group">
                     <EditableMedia src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white dark:to-brand-dark-bg pointer-events-none" />
                   </div>
-                  <div className="p-6 md:p-8 flex flex-col flex-grow text-brand-dark dark:text-brand-bg">
-                    <div className="flex justify-between items-start mb-2">
-                      <EditableText initialText={exp.company} storageKey={`exp_comp_${exp.id}`} isEditing={isEditMode} tag="h3" className="text-xl md:text-2xl font-black leading-tight" />
-                      <EditableText initialText={exp.period} storageKey={`exp_period_${exp.id}`} isEditing={isEditMode} tag="span" className={`font-bold text-sm bg-brand-dark text-white px-3 py-1 rounded-md text-center ml-2 whitespace-nowrap`} />
+                  <div className="p-4 sm:p-5 flex flex-col flex-grow text-brand-dark dark:text-brand-bg">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+                      <EditableText initialText={exp.company} storageKey={`exp_comp_${exp.id}`} isEditing={isEditMode} tag="h3" className="text-xl font-black leading-tight" />
+                      <EditableText initialText={exp.period} storageKey={`exp_period_${exp.id}`} isEditing={isEditMode} tag="span" className={`w-fit font-bold text-xs bg-brand-dark text-white px-3 py-1 rounded-md text-center whitespace-nowrap`} />
                     </div>
-                    <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-300/50 dark:border-brand-bg/30">
+                    <div className="mb-3 pb-3 border-b-2 border-dashed border-gray-300/50 dark:border-brand-bg/30">
                       {isEditMode ? (
                         <div className="flex flex-col gap-2">
                           <select value={exp.type} onChange={(e) => updateExperienceType(index, e.target.value as any)} className="text-xs border-2 border-brand-dark rounded p-1 w-max text-brand-dark">
@@ -1411,8 +1464,8 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                         <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 border-brand-dark dark:border-brand-bg text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>{exp.role}</div>
                       )}
                     </div>
-                    <EditableText initialText={exp.description} storageKey={`exp_desc_${exp.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium mb-6 flex-grow" />
-                    <div className="bg-brand-yellow/30 p-4 rounded-lg border-2 border-brand-dark dark:border-brand-bg">
+                    <EditableText initialText={exp.description} storageKey={`exp_desc_${exp.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed mb-4 flex-grow" />
+                    <div className="bg-brand-yellow/30 p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg">
                       <span className="block text-xs font-black uppercase mb-1">Key Notes</span>
                       <EditableText initialText={exp.keyNotes} storageKey={`exp_notes_${exp.id}`} isEditing={isEditMode} tag="p" className="font-bold text-sm" />
                     </div>
@@ -1439,27 +1492,26 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         </Section>
 
         <Section id="skills" title="Personal Skill" isEditing={isEditMode} storageKey="title_skills">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {dynamicSkills.map((category, catIndex) => (
-              <div key={catIndex} className="flex flex-col gap-4">
-                <div className={`p-4 border-4 border-brand-dark dark:border-brand-bg rounded-xl shadow-retro dark:shadow-retro-light text-center font-black text-xl uppercase text-brand-dark ${catIndex === 0 ? 'bg-brand-orange' : catIndex === 1 ? 'bg-brand-blue' : 'bg-brand-yellow'}`}>
+              <Card key={catIndex} variant="white" className="p-4" disableHover>
+                <div className={`p-3 border-[3px] border-brand-dark rounded-xl text-center font-black text-base uppercase tracking-wider text-brand-dark ${catIndex === 0 ? 'bg-brand-orange' : catIndex === 1 ? 'bg-brand-blue' : 'bg-brand-yellow'}`}>
                   <EditableText initialText={category.title} storageKey={`skill_cat_${catIndex}`} isEditing={isEditMode} tag="span" />
                 </div>
-                <div className="flex flex-col gap-3 relative pb-4">
-                  <div className="absolute left-1/2 top-0 bottom-12 w-1 bg-brand-dark/20 dark:bg-brand-bg/20 -translate-x-1/2 -z-10 border-l-2 border-dashed border-brand-dark dark:border-brand-bg"></div>
+                <div className="flex flex-wrap gap-2 mt-4">
                   {category.skills.map((skill, sIndex) => (
                     <div key={sIndex} className="relative group">
                       {isEditMode ? (
                         <div className="flex gap-2 items-center">
-                          <Card variant="white" className="flex-grow py-3 px-2 text-center font-bold text-sm" noShadow>
+                          <div className="bg-brand-bg dark:bg-brand-dark border-2 border-brand-dark dark:border-brand-bg rounded-full py-2 px-3 text-center font-bold text-sm">
                             <input value={skill} onChange={(e) => updateSkill(catIndex, sIndex, e.target.value)} className="w-full text-center bg-transparent focus:outline-none dark:text-brand-bg" />
-                          </Card>
+                          </div>
                           <button onClick={() => removeSkill(catIndex, sIndex)} className="bg-brand-red text-white p-2 rounded-lg border-2 border-brand-dark hover:scale-110 transition-transform shadow-retro-sm z-40 relative">
                             <Trash2 size={16} />
                           </button>
                         </div>
                       ) : (
-                        <Card variant="white" className="py-3 px-4 text-center font-bold text-sm" noShadow>{skill}</Card>
+                        <span className="inline-flex bg-brand-bg dark:bg-brand-dark border-2 border-brand-dark dark:border-brand-bg rounded-full py-2 px-3 text-center font-bold text-xs sm:text-sm">{skill}</span>
                       )}
                     </div>
                   ))}
@@ -1469,55 +1521,42 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                     </button>
                   )}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </Section>
 
         <Section id="portfolio" title="Project Portfolio" isEditing={isEditMode} storageKey="title_projects">
-          <div className="space-y-12">
+          <div className="space-y-6 sm:space-y-8">
             {dynamicProjects.map((project, index) => (
               <div key={project.id} className="relative group/project">
-                <Card variant="white" className="p-6 md:p-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-7 flex flex-col gap-4">
-                      {/* Main Media - Video gets 16:9 aspect ratio */}
-                      {(() => {
-                        const isVideo = (url: string) =>
-                          url.includes('youtube.com') ||
-                          url.includes('youtu.be') ||
-                          url.match(/\.(mp4|webm|ogg)$/i);
-
-                        const mainMediaSrc = localStorage.getItem(`media_project_${project.id}_main`) || project.image;
-                        const isVideoContent = isVideo(mainMediaSrc);
-
-                        return (
-                          <div className={`border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5 ${isVideoContent ? 'aspect-video' : ''}`}>
-                            <EditableMedia
-                              src={project.image}
-                              alt={project.title}
-                              className={`w-full ${isVideoContent ? 'h-full object-cover' : 'h-auto'}`}
-                              wrapperClassName={isVideoContent ? 'w-full h-full' : 'w-full'}
-                              storageKey={`project_${project.id}_main`}
-                              isEditing={isEditMode}
-                              onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
-                            />
-                          </div>
-                        );
-                      })()}
+                <Card variant="white" className="p-3 sm:p-4" disableHover>
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+                    <div className="lg:col-span-7 flex flex-col gap-3">
+                      <div className="aspect-video border-[3px] border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5">
+                        <EditableMedia
+                          src={project.image}
+                          alt={`${project.title} preview`}
+                          className="w-full h-full object-cover"
+                          wrapperClassName="w-full h-full"
+                          storageKey={`project_${project.id}_main`}
+                          isEditing={isEditMode}
+                          onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
+                        />
+                      </div>
 
                       {/* Thumbnails - Horizontal Scroll */}
                       <div className="relative">
                         <ThumbnailScrollContainer
                           isEditing={isEditMode}
-                          className="flex gap-3 overflow-x-auto pb-3 retro-scrollbar scroll-smooth snap-x snap-mandatory"
+                          className="flex gap-2 overflow-x-auto pb-2 retro-scrollbar scroll-smooth snap-x snap-mandatory"
                         >
                           {project.screenshots.map((shot, sIdx) => (
                             <div key={sIdx} className="flex-shrink-0 relative group/shot snap-start">
-                              <div className="h-28 md:h-36 w-auto border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
+                              <div className="h-20 sm:h-24 w-auto border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
                                 <EditableMedia
                                   src={shot}
-                                  alt="Screenshot"
+                                  alt={`${project.title} screenshot ${sIdx + 1}`}
                                   className="h-full w-auto object-contain"
                                   wrapperClassName="h-full w-auto"
                                   storageKey={`project_${project.id}_shot_${sIdx}`}
@@ -1533,15 +1572,15 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                             </div>
                           ))}
                           {isEditMode && (
-                            <button onClick={() => addScreenshot(index)} className="min-w-[80px] h-28 md:h-36 flex-shrink-0 border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-lg flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
+                            <button onClick={() => addScreenshot(index)} className="min-w-[80px] h-20 sm:h-24 flex-shrink-0 border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-lg flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
                               <Plus size={24} />
                             </button>
                           )}
                         </ThumbnailScrollContainer>
                       </div>
                     </div>
-                    <div className="lg:col-span-5 flex flex-col gap-6 text-brand-dark">
-                      <div className="bg-brand-blue p-6 rounded-xl border-4 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light">
+                    <div className="lg:col-span-5 flex flex-col gap-3 text-brand-dark">
+                      <div className="bg-brand-blue p-4 sm:p-5 rounded-xl border-[3px] border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light">
                         <div className="flex justify-between items-start mb-2">
                           <div className="font-bold text-sm opacity-70 flex flex-wrap gap-1 items-center text-brand-dark">
                             <EditableText initialText={project.category} storageKey={`proj_cat_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
@@ -1612,9 +1651,15 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                             );
                           })()}
                         </div>
-                        <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className="text-3xl font-black mb-4 text-brand-dark" />
-                        <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed mb-6 text-brand-dark" />
-                        <div className="flex justify-end gap-2 items-center">
+                        <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className="text-2xl sm:text-3xl font-black mt-2 mb-2 text-brand-dark" />
+                        <details className="project-details group/details" open={isEditMode}>
+                          <summary className="md:hidden cursor-pointer list-none inline-flex items-center justify-between w-full border-y-2 border-brand-dark/20 py-2 my-1 text-xs font-black uppercase tracking-wider text-brand-dark">
+                            Project brief
+                            <ChevronDown size={18} className="transition-transform group-open/details:rotate-180" />
+                          </summary>
+                          <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed mt-2 mb-3 text-brand-dark" />
+                        </details>
+                        <div className="flex justify-start gap-2 items-center">
                           {isEditMode ? (
                             <select value={project.status} onChange={(e) => updateProjectField(index, 'status', e.target.value)} className="bg-white border-2 border-brand-dark rounded px-2 py-1 text-xs font-bold text-brand-dark">
                               <option value="Prototype">Prototype</option>
@@ -1626,9 +1671,9 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                           )}
                         </div>
                       </div>
-                      <Card variant="orange" className="p-4 flex items-center gap-4" noShadow>
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-brand-dark bg-white flex-shrink-0">
-                          <Settings size={22} className="text-brand-dark" />
+                      <Card variant="orange" className="p-3 flex items-center gap-3" noShadow>
+                        <div className="w-9 h-9 flex items-center justify-center rounded-full border-2 border-brand-dark bg-white flex-shrink-0">
+                          <Settings size={19} className="text-brand-dark" />
                         </div>
                         <div className="flex-1 text-brand-dark">
                           <span className="block text-xs font-bold uppercase opacity-70">Role</span>
@@ -1646,11 +1691,11 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                       )}
                       {project.status === 'WIP' ? (
                         <div className="mt-auto">
-                          <Button fullWidth disabled className="flex items-center justify-center gap-2 bg-gray-400 border-gray-600 text-gray-700 cursor-not-allowed shadow-none opacity-80"><Ban size={18} /> Work In Progress</Button>
+                          <Button fullWidth disabled className="gap-2 bg-gray-400 border-gray-600 text-gray-700 cursor-not-allowed shadow-none opacity-80"><Ban size={18} /> Work In Progress</Button>
                         </div>
                       ) : (
                         <a href={project.link} target="_blank" rel="noreferrer" className="mt-auto">
-                          <Button fullWidth variant="primary" className="flex items-center justify-center gap-2">View Project <ExternalLink size={18} /></Button>
+                          <Button fullWidth variant="primary" className="gap-2">View Project <ExternalLink size={18} /></Button>
                         </a>
                       )}
                     </div>
@@ -1677,11 +1722,11 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         </Section>
 
         <Section id="art-portfolio" title="Art Portfolio" isEditing={isEditMode} storageKey="title_art">
-          <div className="space-y-16">
+          <div className="space-y-8 sm:space-y-10">
             {artCategories.map((category, catIndex) => (
               <div key={category.id} className="relative group/category">
                 <div className="flex justify-between items-end relative">
-                  <div className={`text-brand-dark inline-block px-6 py-2 rounded-t-xl border-x-4 border-t-4 border-brand-dark dark:border-brand-bg font-black text-xl ${catIndex % 3 === 0 ? 'bg-brand-orange text-white' : catIndex % 3 === 1 ? 'bg-brand-green' : 'bg-brand-blue'}`}>
+                  <div className={`text-brand-dark inline-block px-4 py-2 rounded-t-xl border-x-[3px] border-t-[3px] border-brand-dark dark:border-brand-bg font-black text-base sm:text-lg ${catIndex % 3 === 0 ? 'bg-brand-orange text-white' : catIndex % 3 === 1 ? 'bg-brand-green' : 'bg-brand-blue'}`}>
                     <EditableText initialText={category.title} storageKey={`art_cat_title_${category.id}`} isEditing={isEditMode} tag="span" />
                   </div>
                   {isEditMode && (
@@ -1698,20 +1743,20 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                     </div>
                   )}
                 </div>
-                <Card variant="white" className="p-6 rounded-tl-none relative z-40" disableHover>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+                <Card variant="white" className="p-3 sm:p-4 rounded-tl-none relative z-40" disableHover>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 items-start">
                     {category.items.map((item, itemIndex) => {
                       // Get all images for this item (backward compatible)
                       const images = item.urls && item.urls.length > 0 ? item.urls : [item.url];
                       const hasMultipleImages = images.length > 1;
 
                       return (
-                        <div key={item.id} className="group relative border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden bg-black/5">
+                        <div key={item.id} className="group relative border-[3px] border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden bg-brand-dark">
                           {/* Gallery Container with Horizontal Scroll */}
                           <div className="relative">
                             <div
                               id={`gallery-${item.id}`}
-                              className={`flex overflow-x-auto snap-x snap-mandatory scrollbar-hide ${hasMultipleImages ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                              className={`flex aspect-[4/3] overflow-x-auto snap-x snap-mandatory scrollbar-hide ${hasMultipleImages ? 'cursor-grab active:cursor-grabbing' : ''}`}
                               style={{
                                 scrollbarWidth: 'none',
                                 msOverflowStyle: 'none',
@@ -1735,12 +1780,12 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                               }}
                             >
                               {images.map((imgUrl, imgIndex) => (
-                                <div key={imgIndex} className="flex-shrink-0 w-full snap-center relative">
+                                <div key={imgIndex} className="flex-shrink-0 w-full h-full snap-center relative">
                                   <EditableMedia
                                     src={imgUrl}
                                     alt={`${category.title} ${itemIndex + 1} - ${imgIndex + 1}`}
-                                    className="w-full h-auto block transition-transform duration-500"
-                                    wrapperClassName="w-full h-auto"
+                                    className="w-full h-full object-contain block transition-transform duration-500"
+                                    wrapperClassName="w-full h-full"
                                     storageKey={`art_item_${item.id}_${imgIndex}`}
                                     isEditing={isEditMode}
                                     onUpdate={(newUrl) => updateArtItemImage(catIndex, itemIndex, imgIndex, newUrl)}
@@ -1769,7 +1814,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                                     const gallery = document.getElementById(`gallery-${item.id}`);
                                     if (gallery) gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
                                   }}
-                                  className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                  className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}`}
                                   aria-label="Previous"
                                   type="button"
                                 >
@@ -1782,7 +1827,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                                     const gallery = document.getElementById(`gallery-${item.id}`);
                                     if (gallery) gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
                                   }}
-                                  className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                  className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}`}
                                   aria-label="Next"
                                   type="button"
                                 >
@@ -1815,7 +1860,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
 
                           {/* Title overlay with smooth gradient - from transparent to dark */}
                           <div
-                            className={`px-4 py-3 transition-opacity duration-300 ${isEditMode ? 'relative bg-gradient-to-t from-black/90 to-black/70' : 'absolute bottom-0 left-0 right-0 pt-12 opacity-0 group-hover:opacity-100'}`}
+                            className={`px-3 py-2 transition-opacity duration-300 ${isEditMode ? 'relative bg-gradient-to-t from-black/90 to-black/70' : 'absolute bottom-0 left-0 right-0 pt-10 opacity-100 sm:opacity-0 sm:group-hover:opacity-100'}`}
                             style={isEditMode ? {} : {
                               background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.3) 60%, transparent 100%)'
                             }}
@@ -1855,18 +1900,18 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         </Section>
 
         <Section id="certificates" title="Certificates" isEditing={isEditMode} storageKey="title_certs">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {dynamicCertificates.map((cert, index) => (
               <div key={cert.id} className="relative group/cert">
-                <Card variant="white" className="p-4 group cursor-pointer hover:-translate-y-1 transition-transform" noShadow={false}>
-                  <div className="border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-4 relative cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
+                <Card variant="white" className="p-3 group cursor-pointer" noShadow={false}>
+                  <div className="aspect-[16/10] border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-3 relative cursor-pointer bg-black/5" onClick={() => setSelectedCertificate(cert)}>
                     <EditableMedia
                       src={cert.image}
                       alt={cert.title}
-                      className="w-full h-auto object-contain transition-all"
+                      className="w-full h-full object-contain transition-all"
                       storageKey={`cert_img_${cert.id}`}
                       isEditing={isEditMode}
-                      wrapperClassName="w-full"
+                      wrapperClassName="w-full h-full"
                       onUpdate={(newUrl) => updateCertificateImage(index, newUrl)}
                     />
                     {(cert.urls && cert.urls.length > 1) && (
@@ -1876,7 +1921,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                       </div>
                     )}
                   </div>
-                  <div className={`p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center font-bold text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'} cursor-pointer`} onClick={() => setSelectedCertificate(cert)}>
+                  <div className={`p-2.5 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center text-sm font-bold text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'} cursor-pointer`} onClick={() => setSelectedCertificate(cert)}>
                     <EditableText initialText={cert.title} storageKey={`cert_title_${cert.id}`} isEditing={isEditMode} tag="span" />
                   </div>
                   <div className="mt-2 text-xs text-center border-t border-dashed border-gray-400 dark:border-brand-bg/50 pt-2 text-brand-dark dark:text-brand-bg cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
@@ -1986,22 +2031,22 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           );
         })()}
         <Section id="contact" title="Contact Me" isEditing={isEditMode} storageKey="title_contact">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {dynamicContactButtons.map((btn, index) => {
                   // Helper function to render icon
                   const renderIcon = (iconType: string) => {
                     switch (iconType) {
-                      case 'instagram': return <Instagram size={32} />;
-                      case 'phone': return <Phone size={32} />;
-                      case 'mail': return <Mail size={32} />;
-                      case 'linkedin': return <Linkedin size={32} />;
-                      case 'github': return <Github size={32} />;
+                      case 'instagram': return <Instagram size={24} />;
+                      case 'phone': return <Phone size={24} />;
+                      case 'mail': return <Mail size={24} />;
+                      case 'linkedin': return <Linkedin size={24} />;
+                      case 'github': return <Github size={24} />;
                       case 'discord': return (
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.2 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09 0 .11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.48-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-9.21-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.85 2.12-1.89 2.12z" /></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.2 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09 0 .11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.48-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-9.21-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.85 2.12-1.89 2.12z" /></svg>
                       );
-                      default: return <LinkIcon size={32} />;
+                      default: return <LinkIcon size={24} />;
                     }
                   };
 
@@ -2086,12 +2131,12 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                         </Card>
                       ) : (
                         <a href={btn.url} target="_blank" rel="noreferrer">
-                          <Card variant={btn.variant} className={`p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
-                            <div className="flex items-center gap-4 flex-shrink-0">
+                          <Card variant={btn.variant} className={`min-h-16 p-3 flex items-center justify-between gap-3 ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
+                            <div className="flex items-center gap-3 flex-shrink-0">
                               {renderIcon(btn.icon)}
-                              <span className="font-bold text-lg">{btn.label}</span>
+                              <span className="font-bold">{btn.label}</span>
                             </div>
-                            <span className="font-black text-xs md:text-sm sm:text-right">{btn.displayText}</span>
+                            <span className="font-black text-xs text-right break-all">{btn.displayText}</span>
                           </Card>
                         </a>
                       )}
@@ -2108,34 +2153,36 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   </button>
                 )}
               </div>
-              <Card variant="white" className="p-6">
-                <h3 className="text-xl font-black mb-4 uppercase flex items-center gap-2 text-brand-dark dark:text-brand-bg"><Mail size={24} /> Send me an email</h3>
-                <form onSubmit={handleContactSubmit} className="space-y-4">
+              <Card variant="white" className="p-4 sm:p-5" disableHover>
+                <h3 className="text-lg font-black mb-4 uppercase flex items-center gap-2 text-brand-dark dark:text-brand-bg"><Mail size={22} /> Send me an email</h3>
+                <form onSubmit={handleContactSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-bold uppercase mb-1 text-brand-dark dark:text-brand-bg">Your Name</label>
-                    <input type="text" required value={contactForm.name} onChange={(e) => handleContactFormChange('name', e.target.value)} className="w-full border-2 border-brand-dark dark:border-brand-bg p-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange" placeholder="John Doe" />
+                    <input type="text" required value={contactForm.name} onChange={(e) => handleContactFormChange('name', e.target.value)} className="min-h-11 w-full border-2 border-brand-dark dark:border-brand-bg px-3 py-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange" placeholder="John Doe" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase mb-1 text-brand-dark dark:text-brand-bg">Your Email</label>
-                    <input type="email" required value={contactForm.email} onChange={(e) => handleContactFormChange('email', e.target.value)} className="w-full border-2 border-brand-dark dark:border-brand-bg p-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange" placeholder="john@example.com" />
+                    <input type="email" required value={contactForm.email} onChange={(e) => handleContactFormChange('email', e.target.value)} className="min-h-11 w-full border-2 border-brand-dark dark:border-brand-bg px-3 py-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange" placeholder="john@example.com" />
                   </div>
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="block text-xs font-bold uppercase mb-1 text-brand-dark dark:text-brand-bg">Message</label>
-                    <textarea required value={contactForm.message} onChange={(e) => handleContactFormChange('message', e.target.value)} className="w-full border-2 border-brand-dark dark:border-brand-bg p-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange h-32 resize-none" placeholder="Let's build something awesome..." />
+                    <textarea required value={contactForm.message} onChange={(e) => handleContactFormChange('message', e.target.value)} className="w-full border-2 border-brand-dark dark:border-brand-bg p-3 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange h-24 resize-none" placeholder="Let's build something awesome..." />
                   </div>
-                  <Button type="submit" fullWidth className="flex justify-center items-center gap-2"><Send size={18} /> Send Email</Button>
+                  <div className="sm:col-span-2">
+                    <Button type="submit" fullWidth className="gap-2"><Send size={18} /> Send Email</Button>
+                  </div>
                 </form>
               </Card>
             </div>
-            <div className="lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-1">
               <Card variant="white" className="h-full p-2" noShadow>
                 <EditableImage src="https://picsum.photos/seed/adam/600/800" alt="Profile Contact" className="w-full h-full object-cover rounded-lg border-2 border-brand-dark dark:border-brand-bg grayscale hover:grayscale-0 transition-all duration-500" storageKey="profile_contact" isEditing={isEditMode} />
               </Card>
             </div>
           </div>
         </Section>
-        <footer className="bg-brand-dark dark:bg-brand-dark-bg text-brand-bg border-t-4 border-brand-bg dark:border-brand-dark-bg py-12 text-center font-bold">
-          <p className="text-2xl md:text-3xl">Thanks for checking out my portfolio :D</p>
+        <footer className="bg-brand-dark dark:bg-brand-dark-bg text-brand-bg border-t-[3px] border-brand-bg dark:border-brand-dark-bg py-7 px-4 text-center font-bold">
+          <p className="text-lg sm:text-xl">Thanks for checking out my portfolio.</p>
         </footer>
       </div>
     </>
