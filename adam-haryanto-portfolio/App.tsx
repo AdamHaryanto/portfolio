@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun, RefreshCw } from 'lucide-react';
+import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, ChevronRight, Gamepad2, Maximize2, Minimize2, Settings, Video, AlertTriangle, Moon, Sun, RefreshCw } from 'lucide-react';
 import Section from './components/Section';
 import Card from './components/Card';
 import Button from './components/Button';
@@ -10,6 +10,7 @@ import EditableText from './components/EditableText';
 import IntroOverlay from './components/IntroOverlay';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import ThumbnailScrollContainer from './components/ThumbnailScrollContainer';
+import MiniGame from './components/MiniGame';
 import {
   EXPERIENCES,
   EDUCATION,
@@ -30,6 +31,69 @@ function App() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [portfolioDropdownOpen, setPortfolioDropdownOpen] = useState(false);
+
+  // Layout & Expandable Sections State
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    about: true,
+    education: false,
+    experience: false,
+    skills: false,
+    portfolio: true,
+    'art-portfolio': false,
+    certificates: false,
+    contact: false
+  });
+  
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [expandedExperiences, setExpandedExperiences] = useState<Record<string, boolean>>({});
+  const [showMiniGame, setShowMiniGame] = useState(false);
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  const expandAllSections = () => {
+    setExpandedSections({
+      about: true,
+      education: true,
+      experience: true,
+      skills: true,
+      portfolio: true,
+      'art-portfolio': true,
+      certificates: true,
+      contact: true
+    });
+  };
+
+  const collapseAllSections = () => {
+    setExpandedSections({
+      about: false,
+      education: false,
+      experience: false,
+      skills: false,
+      portfolio: false,
+      'art-portfolio': false,
+      certificates: false,
+      contact: false
+    });
+  };
+
+  const toggleProjectExpand = (projId: string) => {
+    setExpandedProjects(prev => ({
+      ...prev,
+      [projId]: !prev[projId]
+    }));
+  };
+
+  const toggleExperienceExpand = (expId: string) => {
+    setExpandedExperiences(prev => ({
+      ...prev,
+      [expId]: !prev[expId]
+    }));
+  };
 
   // Dark Mode State
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -710,17 +774,30 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    try {
-      const element = document.querySelector(href);
-      if (element) {
-        const navbar = document.querySelector('nav');
-        const navHeight = navbar ? navbar.offsetHeight : 80;
-        const elementPosition = element.getBoundingClientRect().top;
-        const offsetPosition = elementPosition + window.scrollY - navHeight - 20;
-        window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-        setIsMenuOpen(false);
-      }
-    } catch (error) { console.warn("Navigation error:", error); }
+    
+    // Automatically expand the section
+    const sectionId = href.replace('#', '');
+    if (sectionId) {
+      setExpandedSections(prev => ({
+        ...prev,
+        [sectionId]: true
+      }));
+    }
+
+    // Small delay to allow accordion animation start and scroll calculation
+    setTimeout(() => {
+      try {
+        const element = document.querySelector(href);
+        if (element) {
+          const navbar = document.querySelector('nav');
+          const navHeight = navbar ? navbar.offsetHeight : 80;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.scrollY - navHeight - 10;
+          window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+          setIsMenuOpen(false);
+        }
+      } catch (error) { console.warn("Navigation error:", error); }
+    }, 100);
   };
 
   // --- CRUD FUNCTIONS (Same as before) ---
@@ -1307,57 +1384,121 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           </div>
         )}
 
-        <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-12">
-          <SearchHeader />
-          <Card className="p-8 md:p-12 max-w-md w-full text-center" variant="green">
-            <h2 className="text-4xl md:text-5xl font-black mb-4 text-brand-dark uppercase">Portfolio</h2>
-            <EditableText initialText="Game Developer & Technical Artist" storageKey="hero_subtitle" isEditing={isEditMode} tag="p" className="font-bold text-xl mb-8 opacity-80 text-brand-dark" />
-            <div className="flex flex-col gap-4">
-              <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="w-full">
-                <Button fullWidth variant="secondary">Start Exploring</Button>
-              </a>
-              <a href={SOCIAL_LINKS.itch} target="_blank" rel="noreferrer" className="w-full">
-                <Button fullWidth variant="outline" className="bg-white text-brand-dark">Visit Itch.io</Button>
-              </a>
+        {/* Compact Hero Section */}
+        <div className="w-full max-w-4xl mx-auto px-4 pt-8 pb-4">
+          <Card className="p-4 md:p-6 w-full" variant="white" disableHover>
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 text-brand-dark dark:text-brand-bg">
+              {/* Profile Image - Left Side */}
+              <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-brand-dark dark:border-brand-bg overflow-hidden shadow-retro-sm bg-brand-bg shrink-0">
+                <EditableImage 
+                  src="https://picsum.photos/seed/adam/600/800" 
+                  alt="Adam Haryanto Profile" 
+                  className="w-full h-full object-cover" 
+                  storageKey="profile_main" 
+                  isEditing={isEditMode} 
+                />
+              </div>
+              
+              {/* Info - Right Side */}
+              <div className="flex-1 text-center md:text-left space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h1 className="text-2xl md:text-3xl font-black tracking-tight text-brand-dark dark:text-brand-bg uppercase">
+                    Adam Haryanto
+                  </h1>
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold border-2 border-brand-dark bg-brand-yellow text-brand-dark w-max mx-auto md:mx-0 shrink-0">
+                    Game Dev & Technical Artist
+                  </span>
+                </div>
+                
+                <EditableText 
+                  initialText="I'm a Game Developer with over 3 years of experience. Highly adaptable to production workflows and experienced in team collaboration." 
+                  storageKey="hero_short_bio" 
+                  isEditing={isEditMode} 
+                  tag="p" 
+                  className="font-medium text-xs md:text-sm opacity-80 text-brand-dark dark:text-brand-bg leading-relaxed" 
+                />
+                
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1">
+                  <a href="#portfolio" onClick={(e) => scrollToSection(e, '#portfolio')}>
+                    <Button variant="secondary" className="px-3 py-1.5 text-xs border-2 rounded-lg shadow-retro-sm md:shadow-retro">
+                      View Projects
+                    </Button>
+                  </a>
+                  <a href={SOCIAL_LINKS.itch} target="_blank" rel="noreferrer">
+                    <Button variant="outline" className="bg-white hover:bg-gray-100 text-brand-dark px-3 py-1.5 text-xs border-2 rounded-lg shadow-retro-sm md:shadow-retro">
+                      Visit Itch.io
+                    </Button>
+                  </a>
+                  <button 
+                    onClick={() => setShowMiniGame(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 font-bold text-xs border-2 border-brand-dark rounded-lg bg-brand-green text-brand-dark hover:bg-[#4AA886] transition-all active:translate-y-[1px] shadow-retro-sm md:shadow-retro"
+                  >
+                    <Gamepad2 size={14} /> Play Mini-Game
+                  </button>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
 
+        {/* Master Section Controls */}
+        <div className="w-full max-w-4xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3 border-b-2 border-dashed border-brand-dark/25 dark:border-brand-bg/25">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-black uppercase opacity-60 text-brand-dark dark:text-brand-bg">Sections:</span>
+            <button 
+              onClick={expandAllSections} 
+              className="flex items-center gap-1 px-2.5 py-1 bg-brand-blue text-brand-dark border-2 border-brand-dark rounded-md text-xs font-bold hover:scale-[1.02] active:translate-y-[1px] transition-all shadow-retro-sm"
+            >
+              <Maximize2 size={12} /> Expand All
+            </button>
+            <button 
+              onClick={collapseAllSections} 
+              className="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-brand-dark-bg text-brand-dark dark:text-brand-bg border-2 border-brand-dark dark:border-brand-bg rounded-md text-xs font-bold hover:scale-[1.02] active:translate-y-[1px] transition-all shadow-retro-sm"
+            >
+              <Minimize2 size={12} /> Collapse All
+            </button>
+          </div>
+          
+          <div className="text-xs font-bold text-brand-dark dark:text-brand-bg opacity-75">
+            Click any section badge to expand/collapse
+          </div>
+        </div>
+
         {/* Sections */}
-        <Section id="about" title="About Me" isEditing={isEditMode} storageKey="title_about">
+        <Section id="about" title="About Me" isEditing={isEditMode} storageKey="title_about" isCollapsible={true} isExpanded={expandedSections.about} onToggle={() => toggleSection('about')}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="h-full" variant="white">
-              <EditableImage src="https://picsum.photos/seed/adam/600/800" alt="Adam Haryanto" className="w-full h-full object-cover min-h-[300px]" storageKey="profile_main" isEditing={isEditMode} />
+            <Card className="h-full animate-fadeIn" variant="white" disableHover>
+              <EditableImage src="https://picsum.photos/seed/adam/600/800" alt="Adam Haryanto" className="w-full h-full object-cover min-h-[200px] max-h-[350px] md:max-h-none" storageKey="profile_main" isEditing={isEditMode} />
             </Card>
             <div className="md:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card variant="orange" className="p-6 flex flex-col justify-center">
-                  <span className="text-sm font-bold opacity-70 mb-1 text-brand-dark">Role</span>
-                  <EditableText initialText="Indie Game Developer" storageKey="role_card" isEditing={isEditMode} tag="h3" className="text-3xl font-black text-white drop-shadow-md" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card variant="orange" className="p-4 md:p-6 flex flex-col justify-center">
+                  <span className="text-xs font-bold opacity-70 mb-1 text-brand-dark">Role</span>
+                  <EditableText initialText="Indie Game Developer" storageKey="role_card" isEditing={isEditMode} tag="h3" className="text-2xl md:text-3xl font-black text-white drop-shadow-md" />
                 </Card>
-                <Card variant="white" className="p-6 flex flex-col justify-center">
-                  <EditableText initialText='"Finish what you start"' storageKey="motto_card" isEditing={isEditMode} tag="h3" className="text-2xl font-bold italic text-brand-dark dark:text-brand-bg" />
-                  <span className="text-sm font-bold opacity-50 mt-2 text-right text-brand-dark dark:text-brand-bg">- My Motto</span>
+                <Card variant="white" className="p-4 md:p-6 flex flex-col justify-center">
+                  <EditableText initialText='"Finish what you start"' storageKey="motto_card" isEditing={isEditMode} tag="h3" className="text-xl font-bold italic text-brand-dark dark:text-brand-bg" />
+                  <span className="text-xs font-bold opacity-50 mt-2 text-right text-brand-dark dark:text-brand-bg">- My Motto</span>
                 </Card>
               </div>
-              <Card variant="blue" className="p-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="bg-brand-dark rounded-full p-2 text-white">
-                    <span className="font-bold text-xl px-2">?</span>
+              <Card variant="blue" className="p-6 md:p-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-brand-dark rounded-full p-1.5 text-white">
+                    <span className="font-bold text-lg px-2">?</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-brand-dark">Who am I?</h3>
+                  <h3 className="text-xl font-bold text-brand-dark">Who am I?</h3>
                 </div>
-                <EditableText initialText="I'm a Game Developer with over 3 years of experience. My skills include 3D modeling, C# and Lua programming, 2D art, graphic design, game design, and project management. Proficient in using Unity Engine and Roblox Studio. Highly adaptable to production workflows and experienced in team collaboration." storageKey="about_desc" isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-lg leading-relaxed text-brand-dark/90" />
+                <EditableText initialText="I'm a Game Developer with over 3 years of experience. My skills include 3D modeling, C# and Lua programming, 2D art, graphic design, game design, and project management. Proficient in using Unity Engine and Roblox Studio. Highly adaptable to production workflows and experienced in team collaboration." storageKey="about_desc" isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm md:text-base leading-relaxed text-brand-dark/90" />
               </Card>
             </div>
           </div>
         </Section>
 
-        <Section id="education" title="Education" isEditing={isEditMode} storageKey="title_education">
-          <div className="space-y-8">
+        <Section id="education" title="Education" isEditing={isEditMode} storageKey="title_education" isCollapsible={true} isExpanded={expandedSections.education} onToggle={() => toggleSection('education')}>
+          <div className="space-y-6 max-w-4xl mx-auto">
             {EDUCATION.map((edu, index) => (
-              <Card key={index} variant={index === 0 ? 'blue' : 'orange'} className="p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                <div className="w-24 h-auto md:w-32 flex-shrink-0 border-4 border-brand-dark rounded-lg overflow-hidden bg-white">
+              <Card key={index} variant={index === 0 ? 'blue' : 'orange'} className="p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+                <div className="w-20 h-auto md:w-28 flex-shrink-0 border-4 border-brand-dark rounded-lg overflow-hidden bg-white">
                   <EditableMedia
                     src={edu.image || "https://picsum.photos/seed/edu/200/200"}
                     alt={edu.institution}
@@ -1368,104 +1509,123 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   />
                 </div>
                 <div className="flex-1 text-brand-dark">
-                  <EditableText initialText={edu.institution} storageKey={`edu_inst_${index}`} isEditing={isEditMode} tag="h3" className="text-2xl md:text-3xl font-black mb-2" />
-                  <EditableText initialText={edu.degree} storageKey={`edu_degree_${index}`} isEditing={isEditMode} tag="p" className="text-xl font-bold opacity-80 mb-4" />
-                  <EditableText initialText={edu.description} storageKey={`edu_desc_${index}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium leading-relaxed" />
+                  <EditableText initialText={edu.institution} storageKey={`edu_inst_${index}`} isEditing={isEditMode} tag="h3" className="text-xl md:text-2xl font-black mb-1" />
+                  <EditableText initialText={edu.degree} storageKey={`edu_degree_${index}`} isEditing={isEditMode} tag="p" className="text-base font-bold opacity-80 mb-2" />
+                  <EditableText initialText={edu.description} storageKey={`edu_desc_${index}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-xs md:text-sm leading-relaxed" />
                 </div>
-                <div className="bg-brand-dark/10 p-6 rounded-xl border-2 border-brand-dark min-w-[150px] text-center text-brand-dark">
-                  <EditableText initialText={edu.score} storageKey={`edu_score_${index}`} isEditing={isEditMode} tag="span" className="block text-4xl font-black" />
-                  <EditableText initialText={edu.scoreLabel} storageKey={`edu_scorelabel_${index}`} isEditing={isEditMode} tag="span" className="text-xs font-bold uppercase tracking-wider opacity-70" />
+                <div className="bg-brand-dark/10 p-4 rounded-xl border-2 border-brand-dark min-w-[120px] text-center text-brand-dark w-full md:w-auto">
+                  <EditableText initialText={edu.score} storageKey={`edu_score_${index}`} isEditing={isEditMode} tag="span" className="block text-3xl font-black" />
+                  <EditableText initialText={edu.scoreLabel} storageKey={`edu_scorelabel_${index}`} isEditing={isEditMode} tag="span" className="text-xxs font-bold uppercase tracking-wider opacity-70" />
                 </div>
               </Card>
             ))}
           </div>
         </Section>
 
-        <Section id="experience" title="Experience" isEditing={isEditMode} storageKey="title_experience">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {dynamicExperiences.map((exp, index) => (
-              <div key={exp.id} className="relative group/exp">
-                <Card variant="white" className="flex flex-col h-full" noShadow={false}>
-                  <div className="w-full h-48 flex-shrink-0 relative group">
-                    <EditableMedia src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white dark:to-brand-dark-bg pointer-events-none" />
-                  </div>
-                  <div className="p-6 md:p-8 flex flex-col flex-grow text-brand-dark dark:text-brand-bg">
-                    <div className="flex justify-between items-start mb-2">
-                      <EditableText initialText={exp.company} storageKey={`exp_comp_${exp.id}`} isEditing={isEditMode} tag="h3" className="text-xl md:text-2xl font-black leading-tight" />
-                      <EditableText initialText={exp.period} storageKey={`exp_period_${exp.id}`} isEditing={isEditMode} tag="span" className={`font-bold text-sm bg-brand-dark text-white px-3 py-1 rounded-md text-center ml-2 whitespace-nowrap`} />
-                    </div>
-                    <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-300/50 dark:border-brand-bg/30">
-                      {isEditMode ? (
-                        <div className="flex flex-col gap-2">
-                          <select value={exp.type} onChange={(e) => updateExperienceType(index, e.target.value as any)} className="text-xs border-2 border-brand-dark rounded p-1 w-max text-brand-dark">
-                            <option value="Work">Work</option>
-                            <option value="Organization">Organization</option>
-                          </select>
-                          <div className="flex gap-1">
-                            <span className="text-xs font-bold">Role:</span>
-                            <EditableText initialText={exp.role} storageKey={`exp_role_${exp.id}`} isEditing={true} tag="span" className="text-xs border-b border-brand-dark dark:border-brand-bg" />
+        <Section id="experience" title="Experience" isEditing={isEditMode} storageKey="title_experience" isCollapsible={true} isExpanded={expandedSections.experience} onToggle={() => toggleSection('experience')}>
+          <div className="flex flex-col gap-4 max-w-4xl mx-auto">
+            {dynamicExperiences.map((exp, index) => {
+              const isExpExpanded = expandedExperiences[exp.id] !== undefined ? expandedExperiences[exp.id] : index === 0;
+              return (
+                <div key={exp.id} className="relative group/exp">
+                  <Card variant="white" className="p-4 md:p-5 transition-all duration-300" disableHover={!isExpExpanded}>
+                    {/* Header */}
+                    <div 
+                      onClick={() => toggleExperienceExpand(exp.id)}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={exp.image || "https://picsum.photos/seed/exp/100/100"} 
+                          alt={exp.company} 
+                          className="w-10 h-10 object-cover border-2 border-brand-dark rounded shrink-0 bg-black/5" 
+                        />
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-black text-base md:text-lg text-brand-dark dark:text-brand-bg group-hover/exp:text-brand-orange transition-colors">
+                              {exp.company}
+                            </h4>
+                            <span className={`px-2 py-0.5 rounded-full text-xxs font-bold border border-brand-dark text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>
+                              {exp.type}
+                            </span>
                           </div>
+                          <p className="text-xs md:text-sm font-bold opacity-80 text-brand-dark dark:text-brand-bg">
+                            {exp.role}
+                          </p>
                         </div>
-                      ) : (
-                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 border-brand-dark dark:border-brand-bg text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>{exp.role}</div>
-                      )}
+                      </div>
+                      <div className="flex items-center gap-3 justify-between sm:justify-end shrink-0 w-full sm:w-auto">
+                        <span className="font-bold text-xxs md:text-xs bg-brand-dark text-white px-2 py-1 rounded">
+                          {exp.period}
+                        </span>
+                        <button className="flex items-center gap-1 text-xxs font-bold bg-brand-bg border border-brand-dark px-2 py-1 rounded hover:bg-gray-100 transition-all text-brand-dark">
+                          {isExpExpanded ? 'Hide' : 'Show'}
+                          <ChevronDown size={12} className={`transition-transform duration-300 ${isExpExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
                     </div>
-                    <EditableText initialText={exp.description} storageKey={`exp_desc_${exp.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium mb-6 flex-grow" />
-                    <div className="bg-brand-yellow/30 p-4 rounded-lg border-2 border-brand-dark dark:border-brand-bg">
-                      <span className="block text-xs font-black uppercase mb-1">Key Notes</span>
-                      <EditableText initialText={exp.keyNotes} storageKey={`exp_notes_${exp.id}`} isEditing={isEditMode} tag="p" className="font-bold text-sm" />
+
+                    {/* Expandable Content */}
+                    <div className={`transition-all duration-300 ease-in-out origin-top ${isExpExpanded ? 'max-h-[1000px] opacity-100 mt-4 border-t border-dashed border-gray-300 dark:border-brand-bg/25 pt-4' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'}`}>
+                      <p className="font-medium text-xs md:text-sm text-brand-dark dark:text-brand-bg leading-relaxed mb-4">
+                        {exp.description}
+                      </p>
+                      <div className="bg-brand-yellow/20 p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-brand-dark">
+                        <span className="block text-xxs font-black uppercase mb-1 opacity-70">Key Notes</span>
+                        <p className="font-bold text-xs">{exp.keyNotes}</p>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-                {isEditMode && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeExperience(index); }}
-                    className="absolute -top-4 right-4 z-40 bg-brand-red text-white p-2 rounded-full shadow-retro-sm hover:scale-110 transition-transform cursor-pointer"
-                    type="button"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
+                  </Card>
+                  
+                  {isEditMode && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeExperience(index); }}
+                      className="absolute -top-2.5 -right-2.5 z-40 bg-brand-red text-white p-1.5 rounded-full border border-brand-dark shadow-retro-sm hover:scale-110 transition-transform cursor-pointer"
+                      type="button"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
             {isEditMode && (
-              <button onClick={addExperience} className="w-full min-h-[300px] border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl p-8 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
-                <Plus size={48} className="mb-2 group-hover:scale-110 transition-transform" />
-                <span className="font-black text-xl uppercase">Add Experience</span>
+              <button onClick={addExperience} className="w-full border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl py-6 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
+                <Plus size={32} className="mb-1 group-hover:scale-110 transition-transform" />
+                <span className="font-black text-xs uppercase">Add Experience</span>
               </button>
             )}
           </div>
         </Section>
 
-        <Section id="skills" title="Personal Skill" isEditing={isEditMode} storageKey="title_skills">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <Section id="skills" title="Personal Skill" isEditing={isEditMode} storageKey="title_skills" isCollapsible={true} isExpanded={expandedSections.skills} onToggle={() => toggleSection('skills')}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {dynamicSkills.map((category, catIndex) => (
               <div key={catIndex} className="flex flex-col gap-4">
-                <div className={`p-4 border-4 border-brand-dark dark:border-brand-bg rounded-xl shadow-retro dark:shadow-retro-light text-center font-black text-xl uppercase text-brand-dark ${catIndex === 0 ? 'bg-brand-orange' : catIndex === 1 ? 'bg-brand-blue' : 'bg-brand-yellow'}`}>
+                <div className={`p-3 border-4 border-brand-dark dark:border-brand-bg rounded-xl shadow-retro dark:shadow-retro-light text-center font-black text-base md:text-lg uppercase text-brand-dark ${catIndex === 0 ? 'bg-brand-orange' : catIndex === 1 ? 'bg-brand-blue' : 'bg-brand-yellow'}`}>
                   <EditableText initialText={category.title} storageKey={`skill_cat_${catIndex}`} isEditing={isEditMode} tag="span" />
                 </div>
-                <div className="flex flex-col gap-3 relative pb-4">
-                  <div className="absolute left-1/2 top-0 bottom-12 w-1 bg-brand-dark/20 dark:bg-brand-bg/20 -translate-x-1/2 -z-10 border-l-2 border-dashed border-brand-dark dark:border-brand-bg"></div>
+                <div className="flex flex-col gap-2 relative pb-4">
+                  <div className="absolute left-1/2 top-0 bottom-12 w-1 bg-brand-dark/10 dark:bg-brand-bg/10 -translate-x-1/2 -z-10 border-l-2 border-dashed border-brand-dark dark:border-brand-bg"></div>
                   {category.skills.map((skill, sIndex) => (
                     <div key={sIndex} className="relative group">
                       {isEditMode ? (
                         <div className="flex gap-2 items-center">
-                          <Card variant="white" className="flex-grow py-3 px-2 text-center font-bold text-sm" noShadow>
+                          <Card variant="white" className="flex-grow py-2 px-1 text-center font-bold text-xs" noShadow>
                             <input value={skill} onChange={(e) => updateSkill(catIndex, sIndex, e.target.value)} className="w-full text-center bg-transparent focus:outline-none dark:text-brand-bg" />
                           </Card>
-                          <button onClick={() => removeSkill(catIndex, sIndex)} className="bg-brand-red text-white p-2 rounded-lg border-2 border-brand-dark hover:scale-110 transition-transform shadow-retro-sm z-40 relative">
-                            <Trash2 size={16} />
+                          <button onClick={() => removeSkill(catIndex, sIndex)} className="bg-brand-red text-white p-1.5 rounded-lg border-2 border-brand-dark hover:scale-115 transition-transform shadow-retro-sm z-40 relative">
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       ) : (
-                        <Card variant="white" className="py-3 px-4 text-center font-bold text-sm" noShadow>{skill}</Card>
+                        <Card variant="white" className="py-2 px-3 text-center font-bold text-xs" noShadow>{skill}</Card>
                       )}
                     </div>
                   ))}
                   {isEditMode && (
-                    <button onClick={() => addSkill(catIndex)} className="mx-auto flex items-center justify-center gap-2 bg-brand-green text-white font-bold py-2 px-4 rounded-full border-2 border-brand-dark hover:scale-105 transition-transform shadow-retro-sm mt-2">
-                      <Plus size={16} /> Add Skill
+                    <button onClick={() => addSkill(catIndex)} className="mx-auto flex items-center justify-center gap-1.5 bg-brand-green text-white font-bold py-1.5 px-3 rounded-full border-2 border-brand-dark hover:scale-105 transition-transform shadow-retro-sm mt-1 text-xs">
+                      <Plus size={14} /> Add Skill
                     </button>
                   )}
                 </div>
@@ -1474,209 +1634,238 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           </div>
         </Section>
 
-        <Section id="portfolio" title="Project Portfolio" isEditing={isEditMode} storageKey="title_projects">
-          <div className="space-y-12">
-            {dynamicProjects.map((project, index) => (
-              <div key={project.id} className="relative group/project">
-                <Card variant="white" className="p-6 md:p-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-7 flex flex-col gap-4">
-                      {/* Main Media - Video gets 16:9 aspect ratio */}
-                      {(() => {
-                        const isVideo = (url: string) =>
-                          url.includes('youtube.com') ||
-                          url.includes('youtu.be') ||
-                          url.match(/\.(mp4|webm|ogg)$/i);
-
-                        const mainMediaSrc = localStorage.getItem(`media_project_${project.id}_main`) || project.image;
-                        const isVideoContent = isVideo(mainMediaSrc);
-
-                        return (
-                          <div className={`border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5 ${isVideoContent ? 'aspect-video' : ''}`}>
-                            <EditableMedia
-                              src={project.image}
-                              alt={project.title}
-                              className={`w-full ${isVideoContent ? 'h-full object-cover' : 'h-auto'}`}
-                              wrapperClassName={isVideoContent ? 'w-full h-full' : 'w-full'}
-                              storageKey={`project_${project.id}_main`}
-                              isEditing={isEditMode}
-                              onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
-                            />
+        <Section id="portfolio" title="Project Portfolio" isEditing={isEditMode} storageKey="title_projects" isCollapsible={true} isExpanded={expandedSections.portfolio} onToggle={() => toggleSection('portfolio')}>
+          <div className="space-y-6">
+            {dynamicProjects.map((project, index) => {
+              const isProjExpanded = expandedProjects[project.id] !== undefined ? expandedProjects[project.id] : index === 0;
+              return (
+                <div key={project.id} className="relative group/project">
+                  <Card variant="white" className="p-4 md:p-6 transition-all duration-300" disableHover={!isProjExpanded}>
+                    
+                    {/* Project Header (Clickable to Toggle Collapse/Expand) */}
+                    <div 
+                      onClick={() => toggleProjectExpand(project.id)}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer pb-2"
+                    >
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={project.image} 
+                          alt={project.title} 
+                          className="w-12 h-12 md:w-16 md:h-16 object-cover border-2 border-brand-dark rounded-lg shrink-0 bg-black/5" 
+                        />
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="font-black text-lg md:text-xl text-brand-dark dark:text-brand-bg group-hover/project:text-brand-orange transition-colors">
+                              {project.title}
+                            </h4>
+                            <span className="text-xs bg-brand-blue/30 text-brand-dark px-2 py-0.5 rounded border border-brand-dark">
+                              {project.category}
+                            </span>
+                            <span className="text-xs bg-brand-yellow/30 text-brand-dark px-2 py-0.5 rounded border border-brand-dark">
+                              {project.engine}
+                            </span>
                           </div>
-                        );
-                      })()}
-
-                      {/* Thumbnails - Horizontal Scroll */}
-                      <div className="relative">
-                        <ThumbnailScrollContainer
-                          isEditing={isEditMode}
-                          className="flex gap-3 overflow-x-auto pb-3 retro-scrollbar scroll-smooth snap-x snap-mandatory"
-                        >
-                          {project.screenshots.map((shot, sIdx) => (
-                            <div key={sIdx} className="flex-shrink-0 relative group/shot snap-start">
-                              <div className="h-28 md:h-36 w-auto border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
-                                <EditableMedia
-                                  src={shot}
-                                  alt="Screenshot"
-                                  className="h-full w-auto object-contain"
-                                  wrapperClassName="h-full w-auto"
-                                  storageKey={`project_${project.id}_shot_${sIdx}`}
-                                  isEditing={isEditMode}
-                                  onUpdate={(newUrl) => updateProjectMedia(index, 'screenshot', newUrl, sIdx)}
-                                />
-                              </div>
-                              {isEditMode && (
-                                <button onClick={() => removeScreenshot(index, sIdx)} className="absolute top-1 right-1 bg-brand-red text-white p-1 rounded-md border-2 border-white shadow-retro-sm hover:scale-110 transition-transform z-40 cursor-pointer">
-                                  <Trash2 size={12} />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                          {isEditMode && (
-                            <button onClick={() => addScreenshot(index)} className="min-w-[80px] h-28 md:h-36 flex-shrink-0 border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-lg flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
-                              <Plus size={24} />
-                            </button>
-                          )}
-                        </ThumbnailScrollContainer>
+                          <p className="text-xs font-semibold text-brand-dark dark:text-brand-bg/60 line-clamp-1 mt-0.5">
+                            {project.role} | Status: {project.status}
+                          </p>
+                        </div>
                       </div>
+                      
+                      <button className="flex items-center gap-1 text-xs font-bold bg-brand-bg border-2 border-brand-dark px-2.5 py-1.5 rounded-lg hover:bg-gray-100 transition-all shrink-0 text-brand-dark">
+                        {isProjExpanded ? 'Hide Details' : 'Show Details'}
+                        <ChevronDown size={14} className={`transition-transform duration-300 ${isProjExpanded ? 'rotate-180' : ''}`} />
+                      </button>
                     </div>
-                    <div className="lg:col-span-5 flex flex-col gap-6 text-brand-dark">
-                      <div className="bg-brand-blue p-6 rounded-xl border-4 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-bold text-sm opacity-70 flex flex-wrap gap-1 items-center text-brand-dark">
-                            <EditableText initialText={project.category} storageKey={`proj_cat_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
-                            <span>|</span>
-                            <EditableText initialText={project.engine} storageKey={`proj_eng_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
-                          </div>
-                          {/* Engine Icon */}
-                          {(() => {
-                            const renderEngineIcon = (iconType?: string) => {
-                              switch (iconType) {
-                                case 'unity':
-                                  return (
-                                    <svg viewBox="0 0 128 128" className="w-6 h-6" fill="currentColor">
-                                      <path d="m64.414 122.93 47.606-27.49-18.247-10.553-18.656 10.777a1.06 1.06 0 0 1-1.035-.008 1.054 1.054 0 0 1-.523-.898V69.164c0-.754.39-1.437 1.043-1.812L96.77 54.55a1.03 1.03 0 0 1 1.035.008c.324.18.527.52.53.89v21.543l18.259 10.547V32.56l-52.18 30.12Zm0 0" />
-                                      <path opacity="0.6" d="m53.738 95.676-18.664-10.79-18.261 10.552 47.601 27.492V62.68L12.25 32.559v54.976l18.254-10.543V55.45c.008-.37.207-.71.527-.89a1.04 1.04 0 0 1 1.04-.008l22.179 12.8a2.095 2.095 0 0 1 1.043 1.813v25.598c-.004.37-.2.71-.52.902-.316.188-.71.191-1.035.012" />
-                                      <path opacity="0.8" d="M68.988 5.07v21.086l18.657 10.77c.32.187.511.531.511.906 0 .371-.195.711-.511.898L65.469 51.54a2.12 2.12 0 0 1-2.09 0L41.21 38.73a1.033 1.033 0 0 1-.516-.898 1.038 1.038 0 0 1 .516-.906l18.652-10.77V5.07L12.25 32.56l52.164 30.12 52.176-30.12Zm0 0" />
-                                    </svg>
-                                  );
-                                case 'roblox':
-                                  return (
-                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-                                      <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm8.746 15.078l-5.088-1.326 1.326-5.088 5.088 1.326-1.326 5.088z" />
-                                    </svg>
-                                  );
-                                case 'godot':
-                                  return (
-                                    <svg viewBox="0 0 128 128" className="w-6 h-6" fill="currentColor">
-                                      <path d="M63.924 6.633c-4.375 0-8.633.508-12.727 1.398-.086.407-.148.821-.148 1.254 0 3.145 2.497 5.695 5.578 5.695s5.578-2.55 5.578-5.695c0-.254-.031-.5-.062-.746a44.706 44.706 0 0 1 3.5.062c-.031.226-.055.453-.055.684 0 3.145 2.496 5.695 5.578 5.695 3.078 0 5.578-2.55 5.578-5.695 0-.434-.063-.848-.149-1.254a50.094 50.094 0 0 0-12.671-1.398zm-21.598 4.422c-3.719 1.512-7.188 3.453-10.34 5.79.157.347.34.675.563.983 2.008 2.793 5.89 3.371 8.668 1.289.707-.531 1.258-1.188 1.672-1.91.32-.149.644-.286.976-.426-.008-.027-.02-.05-.027-.078a5.447 5.447 0 0 1-.23-1.535c0-1.5.57-2.867 1.495-3.887a47.016 47.016 0 0 0-2.777-.226zm43.348 0c-.938.043-1.86.121-2.782.226a5.608 5.608 0 0 1 1.5 3.832c0 .575-.09 1.129-.253 1.652.336.145.66.278.989.43.418.723.972 1.383 1.683 1.918 2.774 2.086 6.66 1.504 8.664-1.289.219-.308.403-.636.559-.984a49.836 49.836 0 0 0-10.36-5.785zm-32.347 3.882c-1.887 0-3.419 1.531-3.419 3.418 0 1.891 1.532 3.422 3.42 3.422 1.886 0 3.417-1.531 3.417-3.422 0-1.887-1.531-3.418-3.418-3.418zm21.348 0c-1.887 0-3.418 1.531-3.418 3.418 0 1.891 1.531 3.422 3.418 3.422 1.89 0 3.422-1.531 3.422-3.422 0-1.887-1.531-3.418-3.422-3.418zM29.96 21.07a50.093 50.093 0 0 0-7.355 8.313l.078.054c2.46 1.79 5.907 1.524 8.02-.738a5.632 5.632 0 0 0 1.207-2.196c.445-.425.895-.843 1.371-1.242a5.598 5.598 0 0 1-1.078-2.14 5.623 5.623 0 0 1-.164-1.332c-.707-.235-1.398-.485-2.079-.719zm67.934 0c-.68.234-1.371.484-2.078.718a5.544 5.544 0 0 1-1.242 3.477c.476.395.926.813 1.37 1.238a5.608 5.608 0 0 0 1.208 2.196c2.117 2.262 5.559 2.528 8.02.738l.078-.054a50.266 50.266 0 0 0-7.356-8.313zM64 24.191c-4.457 0-8.066 3.617-8.066 8.075 0 4.461 3.609 8.078 8.066 8.078 4.461 0 8.07-3.617 8.07-8.078 0-4.458-3.609-8.075-8.07-8.075zm-27.95 3.012a3.407 3.407 0 0 0-2.382.972c-1.336 1.336-1.336 3.5 0 4.836 1.336 1.332 3.504 1.332 4.84 0a3.425 3.425 0 0 0 .976-2.422c0-.914-.351-1.77-.977-2.414a3.415 3.415 0 0 0-2.457-1.028zm55.832 0a3.42 3.42 0 0 0-2.406.972 3.409 3.409 0 0 0-.977 2.414c0 .919.348 1.778.977 2.422 1.332 1.332 3.5 1.332 4.836 0 1.336-1.336 1.336-3.5 0-4.836a3.403 3.403 0 0 0-2.43-.972zm-52.508 12.93c-.598.66-1.238 1.281-1.914 1.863-.422 2.559.3 5.262 2.238 7.2 2.551 2.55 6.309 3.136 9.41 1.761-.183-.64-.343-1.293-.476-1.957-.77.344-1.606.535-2.48.535-1.673 0-3.243-.652-4.422-1.832a6.247 6.247 0 0 1-1.836-4.422c0-.836.168-1.633.476-2.367-.344-.258-.68-.52-1--.781zm48.184 0c-.32.262-.656.523-1 .777a6.18 6.18 0 0 1 .48 2.371 6.25 6.25 0 0 1-1.835 4.422 6.226 6.226 0 0 1-4.426 1.832c-.871 0-1.703-.191-2.472-.535-.137.664-.297 1.316-.48 1.957 3.097 1.375 6.859.79 9.41-1.761 1.937-1.938 2.66-4.645 2.238-7.2a32.53 32.53 0 0 1-1.914-1.863zM64 43.656c-2.758 0-4.996 2.239-4.996 4.996 0 2.758 2.238 4.996 4.996 4.996 2.762 0 5-2.238 5-4.996 0-2.757-2.238-4.996-5-4.996zm-21.29 1.176c-1.043.793-2.128 1.531-3.257 2.207 .164 3.035 1.476 5.976 3.894 8.27 3.016 2.855 7.098 4.015 10.989 3.499a38.876 38.876 0 0 1-.836-1.848c-.879.086-1.773.035-2.656-.164a11.287 11.287 0 0 1-5.379-3.02c-1.808-1.714-2.824-3.933-3.015-6.218-.074-.907-.02-1.816.168-2.692-.305-.011-.609-.023-.908-.034zm42.512 0c.188.875.242 1.785.168 2.691-.188 2.286-1.203 4.504-3.015 6.22a11.287 11.287 0 0 1-5.379 3.019c-.883.199-1.777.25-2.656.164a39.125 39.125 0 0 1-.836 1.848c3.89.516 7.973-.644 10.989-3.5 2.418-2.293 3.73-5.234 3.894-8.27a34.976 34.976 0 0 1-3.257-2.206c-.3.011-.605.023-.908.034zm-21.145 8.93c-.723 1.129-1.367 2.316-1.934 3.55.614.348 1.254.657 1.914.927a50.143 50.143 0 0 1 3.875 0c.66-.27 1.3-.579 1.914-.927a34.09 34.09 0 0 0-1.934-3.55 18.116 18.116 0 0 1-3.835 0zm-8.453 5.914a30.413 30.413 0 0 0-.879 3.828c.782.555 1.575 1.09 2.387 1.594a31.608 31.608 0 0 1 .23-3.672 14.618 14.618 0 0 1-1.738-1.75zm16.82 0a14.618 14.618 0 0 1-1.738 1.75c.113 1.219.188 2.441.23 3.672.812-.504 1.606-1.039 2.387-1.594a30.413 30.413 0 0 0-.879-3.828zm-17.554 7.941c-.098 1.207-.165 2.418-.188 3.633.796.477 1.601.938 2.422 1.371.09-1.215.168-2.425.293-3.632a41.387 41.387 0 0 1-2.527-1.372zm18.25 0a41.387 41.387 0 0 1-2.527 1.372c.125 1.207.203 2.417.293 3.632.82-.433 1.626-.894 2.422-1.371-.023-1.215-.09-2.426-.188-3.633zm-25.324 4.133c-.172 1.168-.313 2.344-.414 3.527.746.41 1.504.805 2.273 1.184.117-1.164.25-2.324.41-3.48a41.28 41.28 0 0 1-2.27-1.23zm32.356 0a41.28 41.28 0 0 1-2.27 1.23c.16 1.157.293 2.317.41 3.481.77-.379 1.527-.773 2.273-1.184a49.02 49.02 0 0 1-.413-3.527zm-38.676 2.602a49.57 49.57 0 0 0 10.996 6.797c.082-1.031.184-2.059.293-3.086a45.168 45.168 0 0 1-5.54-2.281 48.17 48.17 0 0 1-5.75-1.43zm44.977 0c-1.872.574-3.79 1.05-5.75 1.43a45.168 45.168 0 0 1-5.54 2.28c.11 1.028.211 2.056.293 3.087a49.57 49.57 0 0 0 10.997-6.797zM64 75.355c-1.234 0-2.461.043-3.68.121.016.95.043 1.899.082 2.848 1.191-.07 2.39-.11 3.598-.11 1.207 0 2.406.04 3.598.11.039-.949.066-1.899.082-2.848A50.068 50.068 0 0 0 64 75.355zM53.79 76.07c.05 1.067.113 2.133.199 3.195a50.036 50.036 0 0 1 20.022 0c.086-1.062.149-2.128.2-3.195a52.057 52.057 0 0 0-20.422 0zm.64 6.035c.094 1.05.196 2.098.321 3.145a51.86 51.86 0 0 1 18.498 0c.125-1.047.227-2.094.32-3.145a50.141 50.141 0 0 0-19.14 0zm1.078 5.945c.113.969.234 1.934.375 2.895a51.972 51.972 0 0 1 16.234 0c.14-.96.262-1.926.375-2.895a51.782 51.782 0 0 0-16.984 0zm1.563 5.625a53.113 53.113 0 0 0 13.886 0 50.296 50.296 0 0 0 .508-2.656 52.217 52.217 0 0 0-14.902 0c.14.89.324 1.777.508 2.656zm1.168 4.383c.207.758.43 1.504.676 2.242a53.193 53.193 0 0 0 5.129.407c1.742 0 3.454-.14 5.129-.407.246-.738.469-1.484.676-2.242a52.996 52.996 0 0 0-11.61 0zm2.136 5.371a49.82 49.82 0 0 0 7.253.535 49.82 49.82 0 0 0 7.254-.535 49.606 49.606 0 0 1-1.297-2.691 53.22 53.22 0 0 1-5.957.363 53.22 53.22 0 0 1-5.957-.363 49.606 49.606 0 0 1-1.296 2.69z" />
-                                    </svg>
-                                  );
-                                case 'unreal':
-                                  return (
-                                    <svg viewBox="0 0 32 32" className="w-6 h-6" fill="currentColor">
-                                      <path d="M16 0c-8.766 0-15.865 7.161-15.865 16s7.099 16 15.865 16c8.76 0 15.865-7.161 15.865-16s-7.104-16-15.87-16zM16 0.703c4.047 0 7.859 1.594 10.724 4.479 2.859 2.875 4.453 6.766 4.443 10.818 0 4.083-1.578 7.927-4.443 10.818-2.828 2.87-6.693 4.484-10.724 4.479-4.031 0.005-7.896-1.609-10.724-4.479-2.859-2.875-4.458-6.766-4.448-10.818 0-4.083 1.583-7.927 4.443-10.818 2.828-2.875 6.698-4.49 10.729-4.479zM15.203 6.333c-2.583 0.693-4.974 2.021-8.161 5.677s-2.583 6.677-2.583 6.677c0 0 0.88-2.078 2.995-4.266 1.005-1.036 1.75-1.385 2.266-1.385 0.458-0.026 0.844 0.344 0.844 0.802v7.422c0 0.734-0.474 0.896-0.911 0.885-0.37-0.005-0.714-0.135-0.714-0.135 2.172 3.156 7.37 3.599 7.37 3.599l2.281-2.438 0.052 0.047 2.089 1.781c3.823-2.271 5.667-6.479 5.667-6.479-1.708 1.802-2.792 2.224-3.438 2.224-0.573-0.005-0.797-0.339-0.797-0.339-0.031-0.156-0.083-2.417-0.104-4.677-0.021-2.339 0-4.682 0.115-4.688 0.661-1.24 2.766-3.74 2.766-3.74-3.932 0.776-6.073 3.354-6.073 3.354-0.635-0.5-1.927-0.417-1.927-0.417 0.604 0.333 1.208 1.302 1.208 2.104v7.896c0 0-1.318 1.161-2.333 1.161-0.604 0-0.974-0.328-1.177-0.599-0.078-0.104-0.146-0.219-0.198-0.344v-9.75c-0.141 0.104-0.313 0.161-0.484 0.167-0.219 0-0.443-0.109-0.594-0.427-0.115-0.24-0.188-0.599-0.188-1.125 0-1.797 2.031-2.99 2.031-2.99z" />
-                                    </svg>
-                                  );
-                                case 'gamemaker':
-                                  return (
-                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-                                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 4c4.4 0 8 3.6 8 8s-3.6 8-8 8-8-3.6-8-8 3.6-8 8-8zm0 2c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 2c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z" />
-                                    </svg>
-                                  );
-                                case 'custom':
-                                  return <ExternalLink className="w-5 h-5" />;
-                                default:
-                                  return null;
-                              }
-                            };
 
-                            return isEditMode ? (
-                              <select
-                                value={project.engineIcon || 'none'}
-                                onChange={(e) => updateProjectField(index, 'engineIcon', e.target.value)}
-                                className="text-xs border-2 border-brand-dark rounded px-2 py-1 bg-white text-brand-dark"
-                              >
-                                <option value="none">No Icon</option>
-                                <option value="unity">Unity</option>
-                                <option value="roblox">Roblox</option>
-                                <option value="godot">Godot</option>
-                                <option value="unreal">Unreal</option>
-                                <option value="gamemaker">GameMaker</option>
-                                <option value="custom">Link Icon</option>
-                              </select>
-                            ) : (
-                              <div className="opacity-70 text-brand-dark">
-                                {renderEngineIcon(project.engineIcon)}
+                    {/* Collapsible Details Content */}
+                    <div className={`transition-all duration-300 ease-in-out origin-top ${isProjExpanded ? 'max-h-[2500px] opacity-100 mt-6 border-t-2 border-dashed border-gray-300 dark:border-brand-bg/25 pt-6' : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'}`}>
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <div className="lg:col-span-7 flex flex-col gap-4">
+                          {/* Main Media - Video gets 16:9 aspect ratio */}
+                          {(() => {
+                            const isVideo = (url: string) =>
+                              url.includes('youtube.com') ||
+                              url.includes('youtu.be') ||
+                              url.match(/\.(mp4|webm|ogg)$/i);
+
+                            const mainMediaSrc = localStorage.getItem(`media_project_${project.id}_main`) || project.image;
+                            const isVideoContent = isVideo(mainMediaSrc);
+
+                            return (
+                              <div className={`border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5 ${isVideoContent ? 'aspect-video' : ''}`}>
+                                <EditableMedia
+                                  src={project.image}
+                                  alt={project.title}
+                                  className={`w-full ${isVideoContent ? 'h-full object-cover' : 'h-auto'}`}
+                                  wrapperClassName={isVideoContent ? 'w-full h-full' : 'w-full'}
+                                  storageKey={`project_${project.id}_main`}
+                                  isEditing={isEditMode}
+                                  onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
+                                />
                               </div>
                             );
                           })()}
+
+                          {/* Thumbnails - Horizontal Scroll */}
+                          <div className="relative">
+                            <ThumbnailScrollContainer
+                              isEditing={isEditMode}
+                              className="flex gap-3 overflow-x-auto pb-3 retro-scrollbar scroll-smooth snap-x snap-mandatory"
+                            >
+                              {project.screenshots.map((shot, sIdx) => (
+                                <div key={sIdx} className="flex-shrink-0 relative group/shot snap-start">
+                                  <div className="h-28 md:h-36 w-auto border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
+                                    <EditableMedia
+                                      src={shot}
+                                      alt="Screenshot"
+                                      className="h-full w-auto object-contain"
+                                      wrapperClassName="h-full w-auto"
+                                      storageKey={`project_${project.id}_shot_${sIdx}`}
+                                      isEditing={isEditMode}
+                                      onUpdate={(newUrl) => updateProjectMedia(index, 'screenshot', newUrl, sIdx)}
+                                    />
+                                  </div>
+                                  {isEditMode && (
+                                    <button onClick={() => removeScreenshot(index, sIdx)} className="absolute top-1 right-1 bg-brand-red text-white p-1 rounded-md border-2 border-white shadow-retro-sm hover:scale-110 transition-transform z-40 cursor-pointer">
+                                      <Trash2 size={12} />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              {isEditMode && (
+                                <button onClick={() => addScreenshot(index)} className="min-w-[80px] h-28 md:h-36 flex-shrink-0 border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-lg flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
+                                  <Plus size={24} />
+                                </button>
+                              )}
+                            </ThumbnailScrollContainer>
+                          </div>
                         </div>
-                        <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className="text-3xl font-black mb-4 text-brand-dark" />
-                        <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed mb-6 text-brand-dark" />
-                        <div className="flex justify-end gap-2 items-center">
-                          {isEditMode ? (
-                            <select value={project.status} onChange={(e) => updateProjectField(index, 'status', e.target.value)} className="bg-white border-2 border-brand-dark rounded px-2 py-1 text-xs font-bold text-brand-dark">
-                              <option value="Prototype">Prototype</option>
-                              <option value="WIP">WIP</option>
-                              <option value="Released">Released</option>
-                            </select>
+                        <div className="lg:col-span-5 flex flex-col gap-6 text-brand-dark">
+                          <div className="bg-brand-blue p-6 rounded-xl border-4 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light text-brand-dark">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="font-bold text-sm opacity-70 flex flex-wrap gap-1 items-center text-brand-dark">
+                                <EditableText initialText={project.category} storageKey={`proj_cat_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
+                                <span>|</span>
+                                <EditableText initialText={project.engine} storageKey={`proj_eng_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
+                              </div>
+                              {/* Engine Icon */}
+                              {(() => {
+                                const renderEngineIcon = (iconType?: string) => {
+                                  switch (iconType) {
+                                    case 'unity':
+                                      return (
+                                        <svg viewBox="0 0 128 128" className="w-6 h-6" fill="currentColor">
+                                          <path d="m64.414 122.93 47.606-27.49-18.247-10.553-18.656 10.777a1.06 1.06 0 0 1-1.035-.008 1.054 1.054 0 0 1-.523-.898V69.164c0-.754.39-1.437 1.043-1.812L96.77 54.55a1.03 1.03 0 0 1 1.035.008c.324.18.527.52.53.89v21.543l18.259 10.547V32.56l-52.18 30.12Zm0 0" />
+                                          <path opacity="0.6" d="m53.738 95.676-18.664-10.79-18.261 10.552 47.601 27.492V62.68L12.25 32.559v54.976l18.254-10.543V55.45c.008-.37.207-.71.527-.89a1.04 1.04 0 0 1 1.04-.008l22.179 12.8a2.095 2.095 0 0 1 1.043 1.813v25.598c-.004.37-.2.71-.52.902-.316.188-.71.191-1.035.012" />
+                                          <path opacity="0.8" d="M68.988 5.07v21.086l18.657 10.77c.32.187.511.531.511.906 0 .371-.195.711-.511.898L65.469 51.54a2.12 2.12 0 0 1-2.09 0L41.21 38.73a1.033 1.033 0 0 1-.516-.898 1.038 1.038 0 0 1 .516-.906l18.652-10.77V5.07L12.25 32.56l52.164 30.12 52.176-30.12Zm0 0" />
+                                        </svg>
+                                      );
+                                    case 'roblox':
+                                      return (
+                                        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                          <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm8.746 15.078l-5.088-1.326 1.326-5.088 5.088 1.326-1.326 5.088z" />
+                                        </svg>
+                                      );
+                                    case 'godot':
+                                      return (
+                                        <svg viewBox="0 0 128 128" className="w-6 h-6" fill="currentColor">
+                                          <path d="M63.924 6.633c-4.375 0-8.633.508-12.727 1.398-.086.407-.148.821-.148 1.254 0 3.145 2.497 5.695 5.578 5.695s5.578-2.55 5.578-5.695c0-.254-.031-.5-.062-.746a44.706 44.706 0 0 1 3.5.062c-.031.226-.055.453-.055.684 0 3.145 2.496 5.695 5.578 5.695 3.078 0 5.578-2.55 5.578-5.695 0-.434-.063-.848-.149-1.254a50.094 50.094 0 0 0-12.671-1.398zm-21.598 4.422c-3.719 1.512-7.188 3.453-10.34 5.79.157.347.34.675.563.983 2.008 2.793 5.89 3.371 8.668 1.289.707-.531 1.258-1.188 1.672-1.91.32-.149.644-.286.976-.426-.008-.027-.02-.05-.027-.078a5.447 5.447 0 0 1-.23-1.535c0-1.5.57-2.867 1.495-3.887a47.016 47.016 0 0 0-2.777-.226zm43.348 0c-.938.043-1.86.121-2.782.226a5.608 5.608 0 0 1 1.5 3.832c0 .575-.09 1.129-.253 1.652.336.145.66.278.989.43.418.723.972 1.383 1.683 1.918 2.774 2.086 6.66 1.504 8.664-1.289.219-.308.403-.636.559-.984a49.836 49.836 0 0 0-10.36-5.785zm-32.347 3.882c-1.887 0-3.419 1.531-3.419 3.418 0 1.891 1.532 3.422 3.42 3.422 1.886 0 3.417-1.531 3.417-3.422 0-1.887-1.531-3.418-3.418-3.418zm21.348 0c-1.887 0-3.418 1.531-3.418 3.418 0 1.891 1.531 3.422 3.418 3.422 1.89 0 3.422-1.531 3.422-3.422 0-1.887-1.531-3.418-3.422-3.418zM29.96 21.07a50.093 50.093 0 0 0-7.355 8.313l.078.054c2.46 1.79 5.907 1.524 8.02-.738a5.632 5.632 0 0 0 1.207-2.196c.445-.425.895-.843 1.371-1.242a5.598 5.598 0 0 1-1.078-2.14 5.623 5.623 0 0 1-.164-1.332c-.707-.235-1.398-.485-2.079-.719zm67.934 0c-.68.234-1.371.484-2.078.718a5.544 5.544 0 0 1-1.242 3.477c.476.395.926.813 1.37 1.238a5.608 5.608 0 0 0 1.208 2.196c2.117 2.262 5.559 2.528 8.02.738l.078-.054a50.266 50.266 0 0 0-7.356-8.313zM64 24.191c-4.457 0-8.066 3.617-8.066 8.075 0 4.461 3.609 8.078 8.066 8.078 4.461 0 8.07-3.617 8.07-8.078 0-4.458-3.609-8.075-8.07-8.075zm-27.95 3.012a3.407 3.407 0 0 0-2.382.972c-1.336 1.336-1.336 3.5 0 4.836 1.336 1.332 3.504 1.332 4.84 0a3.425 3.425 0 0 0 .976-2.422c0-.914-.351-1.77-.977-2.414a3.415 3.415 0 0 0-2.457-1.028zm55.832 0a3.42 3.42 0 0 0-2.406.972 3.409 3.409 0 0 0-.977 2.414c0 .919.348 1.778.977 2.422 1.332 1.332 3.5 1.332 4.836 0 1.336-1.336 1.336-3.5 0-4.836a3.403 3.403 0 0 0-2.43-.972zm-52.508 12.93c-.598.66-1.238 1.281-1.914 1.863-.422 2.559.3 5.262 2.238 7.2 2.551 2.55 6.309 3.136 9.41 1.761-.183-.64-.343-1.293-.476-1.957-.77.344-1.606.535-2.48.535-1.673 0-3.243-.652-4.422-1.832a6.247 6.247 0 0 1-1.836-4.422c0-.836.168-1.633.476-2.367-.344-.258-.68-.52-1--.781zm48.184 0c-.32.262-.656.523-1 .777a6.18 6.18 0 0 1 .48 2.371 6.25 6.25 0 0 1-1.835 4.422 6.226 6.226 0 0 1-4.426 1.832c-.871 0-1.703-.191-2.472-.535-.137.664-.297 1.316-.48 1.957 3.097 1.375 6.859.79 9.41-1.761 1.937-1.938 2.66-4.645 2.238-7.2a32.53 32.53 0 0 1-1.914-1.863zM64 43.656c-2.758 0-4.996 2.239-4.996 4.996 0 2.758 2.238 4.996 4.996 4.996 2.762 0 5-2.238 5-4.996 0-2.757-2.238-4.996-5-4.996zm-21.29 1.176c-1.043.793-2.128 1.531-3.257 2.207 .164 3.035 1.476 5.976 3.894 8.27 3.016 2.855 7.098 4.015 10.989 3.499a38.876 38.876 0 0 1-.836-1.848c-.879.086-1.773.035-2.656-.164a11.287 11.287 0 0 1-5.379-3.02c-1.808-1.714-2.824-3.933-3.015-6.218-.074-.907-.02-1.816.168-2.692-.305-.011-.609-.023-.908-.034zm42.512 0c.188.875.242 1.785.168 2.691-.188 2.286-1.203 4.504-3.015 6.22a11.287 11.287 0 0 1-5.379 3.019c-.883.199-1.777.25-2.656.164a39.125 39.125 0 0 1-.836 1.848c3.89.516 7.973-.644 10.989-3.5 2.418-2.293 3.73-5.234 3.894-8.27a34.976 34.976 0 0 1-3.257-2.206c-.3.011-.605.023-.908.034zm-21.145 8.93c-.723 1.129-1.367 2.316-1.934 3.55.614.348 1.254.657 1.914.927a50.143 50.143 0 0 1 3.875 0c.66-.27 1.3-.579 1.914-.927a34.09 34.09 0 0 0-1.934-3.55 18.116 18.116 0 0 1-3.835 0zm-8.453 5.914a30.413 30.413 0 0 0-.879 3.828c.782.555 1.575 1.09 2.387 1.594a31.608 31.608 0 0 1 .23-3.672 14.618 14.618 0 0 1-1.738-1.75zm16.82 0a14.618 14.618 0 0 1-1.738 1.75c.113 1.219.188 2.441.23 3.672.812-.504 1.606-1.039 2.387-1.594a30.413 30.413 0 0 0-.879-3.828zm-17.554 7.941c-.098 1.207-.165 2.418-.188 3.633.796.477 1.601.938 2.422 1.371.09-1.215.168-2.425.293-3.632a41.387 41.387 0 0 1-2.527-1.372zm18.25 0a41.387 41.387 0 0 1-2.527 1.372c.125 1.207.203 2.417.293 3.632.82-.433 1.626-.894 2.422-1.371-.023-1.215-.09-2.426-.188-3.633zm-25.324 4.133c-.172 1.168-.313 2.344-.414 3.527.746.41 1.504.805 2.273 1.184.117-1.164.25-2.324.41-3.48a41.28 41.28 0 0 1-2.27-1.23zm32.356 0a41.28 41.28 0 0 1-2.27 1.23c.16 1.157.293 2.317.41 3.481.77-.379 1.527-.773 2.273-1.184a49.02 49.02 0 0 1-.413-3.527zm-38.676 2.602a49.57 49.57 0 0 0 10.996 6.797c.082-1.031.184-2.059.293-3.086a45.168 45.168 0 0 1-5.54-2.281 48.17 48.17 0 0 1-5.75-1.43zm44.977 0c-1.872.574-3.79 1.05-5.75 1.43a45.168 45.168 0 0 1-5.54 2.28c.11 1.028.211 2.056.293 3.087a49.57 49.57 0 0 0 10.997-6.797zM64 75.355c-1.234 0-2.461.043-3.68.121.016.95.043 1.899.082 2.848 1.191-.07 2.39-.11 3.598-.11 1.207 0 2.406.04 3.598.11.039-.949.066-1.899.082-2.848A50.068 50.068 0 0 0 64 75.355zM53.79 76.07c.05 1.067.113 2.133.199 3.195a50.036 50.036 0 0 1 20.022 0c.086-1.062.149-2.128.2-3.195a52.057 52.057 0 0 0-20.422 0zm.64 6.035c.094 1.05.196 2.098.321 3.145a51.86 51.86 0 0 1 18.498 0c.125-1.047.227-2.094.32-3.145a50.141 50.141 0 0 0-19.14 0zm1.078 5.945c.113.969.234 1.934.375 2.895a51.972 51.972 0 0 1 16.234 0c.14-.96.262-1.926.375-2.895a51.782 51.782 0 0 0-16.984 0zm1.563 5.625a53.113 53.113 0 0 0 13.886 0 50.296 50.296 0 0 0 .508-2.656 52.217 52.217 0 0 0-14.902 0c.14.89.324 1.777.508 2.656zm1.168 4.383c.207.758.43 1.504.676 2.242a53.193 53.193 0 0 0 5.129.407c1.742 0 3.454-.14 5.129-.407.246-.738.469-1.484.676-2.242a52.996 52.996 0 0 0-11.61 0zm2.136 5.371a49.82 49.82 0 0 0 7.253.535 49.82 49.82 0 0 0 7.254-.535 49.606 49.606 0 0 1-1.297-2.691 53.22 53.22 0 0 1-5.957.363 53.22 53.22 0 0 1-5.957-.363 49.606 49.606 0 0 1-1.296 2.69z" />
+                                        </svg>
+                                      );
+                                    case 'unreal':
+                                      return (
+                                        <svg viewBox="0 0 32 32" className="w-6 h-6" fill="currentColor">
+                                          <path d="M16 0c-8.766 0-15.865 7.161-15.865 16s7.099 16 15.865 16c8.76 0 15.865-7.161 15.865-16s-7.104-16-15.87-16zM16 0.703c4.047 0 7.859 1.594 10.724 4.479 2.859 2.875 4.453 6.766 4.443 10.818 0 4.083-1.578 7.927-4.443 10.818-2.828 2.87-6.693 4.484-10.724 4.479-4.031 0.005-7.896-1.609-10.724-4.479-2.859-2.875-4.458-6.766-4.448-10.818 0-4.083 1.583-7.927 4.443-10.818 2.828-2.875 6.698-4.49 10.729-4.479zM15.203 6.333c-2.583 0.693-4.974 2.021-8.161 5.677s-2.583 6.677-2.583 6.677c0 0 0.88-2.078 2.995-4.266 1.005-1.036 1.75-1.385 2.266-1.385 0.458-0.026 0.844 0.344 0.844 0.802v7.422c0 0.734-0.474 0.896-0.911 0.885-0.37-0.005-0.714-0.135-0.714-0.135 2.172 3.156 7.37 3.599 7.37 3.599l2.281-2.438 0.052 0.047 2.089 1.781c3.823-2.271 5.667-6.479 5.667-6.479-1.708 1.802-2.792 2.224-3.438 2.224-0.573-0.005-0.797-0.339-0.797-0.339-0.031-0.156-0.083-2.417-0.104-4.677-0.021-2.339 0-4.682 0.115-4.688 0.661-1.24 2.766-3.74 2.766-3.74-3.932 0.776-6.073 3.354-6.073 3.354-0.635-0.5-1.927-0.417-1.927-0.417 0.604 0.333 1.208 1.302 1.208 2.104v7.896c0 0-1.318 1.161-2.333 1.161-0.604 0-0.974-0.328-1.177-0.599-0.078-0.104-0.146-0.219-0.198-0.344v-9.75c-0.141 0.104-0.313 0.161-0.484 0.167-0.219 0-0.443-0.109-0.594-0.427-0.115-0.24-0.188-0.599-0.188-1.125 0-1.797 2.031-2.99 2.031-2.99z" />
+                                        </svg>
+                                      );
+                                    case 'gamemaker':
+                                      return (
+                                        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+                                          <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 4c4.4 0 8 3.6 8 8s-3.6 8-8 8-8-3.6-8-8 3.6-8 8-8zm0 2c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 2c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z" />
+                                        </svg>
+                                      );
+                                    case 'custom':
+                                      return <ExternalLink className="w-5 h-5" />;
+                                    default:
+                                      return null;
+                                  }
+                                };
+
+                                return (
+                                  <div className="opacity-70 text-brand-dark dark:text-brand-bg">
+                                    {renderEngineIcon(project.engineIcon)}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                            <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className="text-2xl md:text-3xl font-black mb-3 text-brand-dark" />
+                            <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-xs md:text-sm leading-relaxed mb-4 text-brand-dark" />
+                            <div className="flex justify-end gap-2 items-center">
+                              {isEditMode ? (
+                                <select value={project.status} onChange={(e) => updateProjectField(index, 'status', e.target.value)} className="bg-white border-2 border-brand-dark rounded px-2 py-1 text-xs font-bold text-brand-dark">
+                                  <option value="Prototype">Prototype</option>
+                                  <option value="WIP">WIP</option>
+                                  <option value="Released">Released</option>
+                                </select>
+                              ) : (
+                                <span className="bg-white border-2 border-brand-dark px-2.5 py-0.5 rounded-full text-xxs md:text-xs font-bold uppercase text-brand-dark">Status: {project.status}</span>
+                              )}
+                            </div>
+                          </div>
+                          <Card variant="orange" className="p-3 flex items-center gap-3" noShadow>
+                            <div className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-brand-dark bg-white flex-shrink-0">
+                              <Settings size={16} className="text-brand-dark" />
+                            </div>
+                            <div className="flex-1 text-brand-dark">
+                              <span className="block text-xxs font-bold uppercase opacity-75">Role</span>
+                              <EditableText initialText={project.role} storageKey={`proj_role_${project.id}`} isEditing={isEditMode} tag="span" className="font-bold text-xs" />
+                            </div>
+                          </Card>
+                          {isEditMode && (
+                            <div className="bg-white p-2 border-2 border-brand-dark rounded mb-2 text-brand-dark">
+                              <label className="text-xxs font-bold uppercase block mb-1">Project Link:</label>
+                              <div className="flex items-center gap-2">
+                                <LinkIcon size={12} />
+                                <input type="text" value={project.link} onChange={(e) => updateProjectField(index, 'link', e.target.value)} className="w-full text-xs focus:outline-none" />
+                              </div>
+                            </div>
+                          )}
+                          {project.status === 'WIP' ? (
+                            <div className="mt-auto">
+                              <Button fullWidth disabled className="flex items-center justify-center gap-2 bg-gray-400 border-gray-600 text-gray-700 cursor-not-allowed shadow-none opacity-80 py-2.5 text-xs"><Ban size={14} /> Work In Progress</Button>
+                            </div>
                           ) : (
-                            <span className="bg-white border-2 border-brand-dark px-3 py-1 rounded-full text-xs font-bold uppercase text-brand-dark">Status: {project.status}</span>
+                            <a href={project.link} target="_blank" rel="noreferrer" className="mt-auto">
+                              <Button fullWidth variant="primary" className="flex items-center justify-center gap-2 py-2.5 text-xs">View Project <ExternalLink size={14} /></Button>
+                            </a>
                           )}
                         </div>
                       </div>
-                      <Card variant="orange" className="p-4 flex items-center gap-4" noShadow>
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-brand-dark bg-white flex-shrink-0">
-                          <Settings size={22} className="text-brand-dark" />
-                        </div>
-                        <div className="flex-1 text-brand-dark">
-                          <span className="block text-xs font-bold uppercase opacity-70">Role</span>
-                          <EditableText initialText={project.role} storageKey={`proj_role_${project.id}`} isEditing={isEditMode} tag="span" className="font-bold" />
-                        </div>
-                      </Card>
-                      {isEditMode && (
-                        <div className="bg-white p-2 border-2 border-brand-dark rounded mb-2 text-brand-dark">
-                          <label className="text-xs font-bold uppercase block mb-1">Project Link:</label>
-                          <div className="flex items-center gap-2">
-                            <LinkIcon size={14} />
-                            <input type="text" value={project.link} onChange={(e) => updateProjectField(index, 'link', e.target.value)} className="w-full text-sm focus:outline-none" />
-                          </div>
-                        </div>
-                      )}
-                      {project.status === 'WIP' ? (
-                        <div className="mt-auto">
-                          <Button fullWidth disabled className="flex items-center justify-center gap-2 bg-gray-400 border-gray-600 text-gray-700 cursor-not-allowed shadow-none opacity-80"><Ban size={18} /> Work In Progress</Button>
-                        </div>
-                      ) : (
-                        <a href={project.link} target="_blank" rel="noreferrer" className="mt-auto">
-                          <Button fullWidth variant="primary" className="flex items-center justify-center gap-2">View Project <ExternalLink size={18} /></Button>
-                        </a>
-                      )}
                     </div>
-                  </div>
-                </Card>
-                {isEditMode && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeProject(index); }}
-                    className="absolute -top-6 right-0 z-40 bg-brand-red text-white p-2 rounded-t-lg font-bold flex items-center gap-2 hover:pb-4 transition-all cursor-pointer"
-                    type="button"
-                  >
-                    <Trash2 size={16} /> Remove Project
-                  </button>
-                )}
-              </div>
-            ))}
+                  </Card>
+                  
+                  {isEditMode && (
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeProject(index); }}
+                      className="absolute -top-3.5 right-4 z-40 bg-brand-red text-white p-1.5 rounded-lg border-2 border-brand-dark font-bold flex items-center gap-1.5 hover:scale-105 active:translate-y-[1px] transition-all cursor-pointer text-xs"
+                      type="button"
+                    >
+                      <Trash2 size={12} /> Remove Project
+                    </button>
+                  )}
+                </div>
+              );
+            })}
             {isEditMode && (
-              <button onClick={addProject} className="w-full border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl p-8 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
-                <Plus size={48} className="mb-2 group-hover:scale-110 transition-transform" />
-                <span className="font-black text-xl uppercase">Add New Project</span>
+              <button onClick={addProject} className="w-full border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl py-8 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
+                <Plus size={40} className="mb-1 group-hover:scale-110 transition-transform" />
+                <span className="font-black text-sm uppercase">Add New Project</span>
               </button>
             )}
           </div>
         </Section>
 
-        <Section id="art-portfolio" title="Art Portfolio" isEditing={isEditMode} storageKey="title_art">
+        <Section id="art-portfolio" title="Art Portfolio" isEditing={isEditMode} storageKey="title_art" isCollapsible={true} isExpanded={expandedSections['art-portfolio']} onToggle={() => toggleSection('art-portfolio')}>
           <div className="space-y-16">
             {artCategories.map((category, catIndex) => (
               <div key={category.id} className="relative group/category">
@@ -1854,7 +2043,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           </div>
         </Section>
 
-        <Section id="certificates" title="Certificates" isEditing={isEditMode} storageKey="title_certs">
+        <Section id="certificates" title="Certificates" isEditing={isEditMode} storageKey="title_certs" isCollapsible={true} isExpanded={expandedSections.certificates} onToggle={() => toggleSection('certificates')}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {dynamicCertificates.map((cert, index) => (
               <div key={cert.id} className="relative group/cert">
@@ -1985,7 +2174,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
             </div>
           );
         })()}
-        <Section id="contact" title="Contact Me" isEditing={isEditMode} storageKey="title_contact">
+        <Section id="contact" title="Contact Me" isEditing={isEditMode} storageKey="title_contact" isCollapsible={true} isExpanded={expandedSections.contact} onToggle={() => toggleSection('contact')}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2138,6 +2327,9 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           <p className="text-2xl md:text-3xl">Thanks for checking out my portfolio :D</p>
         </footer>
       </div>
+      {showMiniGame && (
+        <MiniGame onClose={() => setShowMiniGame(false)} />
+      )}
     </>
   );
 }
