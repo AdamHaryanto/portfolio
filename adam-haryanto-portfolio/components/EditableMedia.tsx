@@ -347,7 +347,6 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
             src={getYoutubeEmbed(currentSrc)}
             className="absolute inset-0 w-full h-full rounded-lg"
             title={alt}
-            loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
@@ -366,7 +365,6 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
               src={`https://drive.google.com/file/d/${fileId}/preview`}
               className="absolute inset-0 w-full h-full"
               title={alt}
-              loading="lazy"
               allow="autoplay; encrypted-media; fullscreen"
               allowFullScreen
               style={{ border: 'none' }}
@@ -384,7 +382,6 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
             src={getInstagramEmbed(currentSrc)}
             className="absolute inset-0 w-full h-full"
             title={alt}
-            loading="lazy"
             allowFullScreen
             scrolling="no"
             style={{ border: 'none', overflow: 'hidden' }}
@@ -410,8 +407,6 @@ const EditableMedia: React.FC<EditableMediaProps> = ({
         src={currentSrc}
         alt={alt}
         className={className}
-        loading="lazy"
-        decoding="async"
       />
     );
   };
