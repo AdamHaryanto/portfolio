@@ -19,10 +19,10 @@ const Section: React.FC<SectionProps> = ({
   storageKey
 }) => {
   return (
-    <section id={id} className={`py-16 md:py-24 px-4 max-w-7xl mx-auto scroll-mt-20 ${className}`}>
+    <section id={id} className={`py-10 md:py-14 lg:py-16 px-3 sm:px-4 lg:px-6 max-w-screen-2xl mx-auto scroll-mt-20 ${className}`}>
       {title && (
-        <div className="mb-10 flex justify-center items-center">
-          <div className="bg-white dark:bg-brand-dark-bg border-4 border-brand-dark dark:border-brand-bg rounded-full px-6 py-3 shadow-retro-sm dark:shadow-retro-sm-light animate-retro-badge">
+        <div className="mb-6 md:mb-8 flex justify-center items-center">
+          <div className="bg-white dark:bg-brand-dark-bg border-4 border-brand-dark dark:border-brand-bg rounded-full px-5 md:px-6 py-2.5 md:py-3 shadow-retro-sm dark:shadow-retro-sm-light animate-retro-badge">
             {storageKey ? (
               <EditableText 
                 initialText={title}

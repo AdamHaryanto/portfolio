@@ -9,34 +9,40 @@ interface Props {
 const ThumbnailScrollContainer: React.FC<Props> = ({ children, className }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScroll, setCanScroll] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState({ atStart: true, atEnd: false });
+  const [edgeFade, setEdgeFade] = useState({ left: 0, right: 0 });
 
   // Check if content is scrollable
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
+    const updateEdgeFade = () => {
+      const maxScroll = Math.max(el.scrollWidth - el.clientWidth, 0);
+      if (maxScroll <= 0) {
+        setEdgeFade({ left: 0, right: 0 });
+        return;
+      }
+
+      const fadeDistance = Math.min(96, Math.max(48, el.clientWidth * 0.12));
+      const left = Math.min(el.scrollLeft / fadeDistance, 1);
+      const right = Math.min((maxScroll - el.scrollLeft) / fadeDistance, 1);
+      setEdgeFade({ left, right });
+    };
+
     const checkScrollable = () => {
       const isScrollable = el.scrollWidth > el.clientWidth;
       setCanScroll(isScrollable);
-      updateScrollPosition();
-    };
-
-    const updateScrollPosition = () => {
-      if (!el) return;
-      const atStart = el.scrollLeft <= 0;
-      const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 5;
-      setScrollPosition({ atStart, atEnd });
+      updateEdgeFade();
     };
 
     // Check on mount and resize
     checkScrollable();
     window.addEventListener('resize', checkScrollable);
-    el.addEventListener('scroll', updateScrollPosition);
+    el.addEventListener('scroll', updateEdgeFade, { passive: true });
 
     return () => {
       window.removeEventListener('resize', checkScrollable);
-      el.removeEventListener('scroll', updateScrollPosition);
+      el.removeEventListener('scroll', updateEdgeFade);
     };
   }, [children]);
 
@@ -71,28 +77,26 @@ const ThumbnailScrollContainer: React.FC<Props> = ({ children, className }) => {
     };
   }, []);
 
+  const leftEdgeOpacity = 1 - edgeFade.left;
+  const rightEdgeOpacity = 1 - edgeFade.right;
+  const maskImage = canScroll
+    ? `linear-gradient(90deg, rgba(0,0,0,${leftEdgeOpacity}) 0%, rgba(0,0,0,${1 - edgeFade.left * 0.45}) 18px, #000 58px, #000 calc(100% - 58px), rgba(0,0,0,${1 - edgeFade.right * 0.45}) calc(100% - 18px), rgba(0,0,0,${rightEdgeOpacity}) 100%)`
+    : undefined;
+
   return (
     <div className="relative">
-      {/* Left fade indicator */}
-      {canScroll && !scrollPosition.atStart && (
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-brand-dark-bg to-transparent z-10 pointer-events-none" />
-      )}
-
       <div
         ref={scrollRef}
-        className={`${className} cursor-grab active:cursor-grabbing`}
+        className={`${className} cursor-grab active:cursor-grabbing transition-opacity duration-500 ease-out`}
         style={{
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'thin',
+          maskImage,
+          WebkitMaskImage: maskImage,
         }}
       >
         {children}
       </div>
-
-      {/* Right fade indicator */}
-      {canScroll && !scrollPosition.atEnd && (
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-brand-dark-bg to-transparent z-10 pointer-events-none" />
-      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun, RefreshCw } from 'lucide-react';
+import { Menu, X, Download, Upload, ExternalLink, Mail, Phone, Instagram, Linkedin, Github, Pencil, RotateCcw, Check, Plus, Trash2, Ban, Send, Link as LinkIcon, ChevronDown, Settings, Video, AlertTriangle, Moon, Sun, RefreshCw, Home, Briefcase, FolderOpen, Eye, ArrowUpRight, Images, GripVertical } from 'lucide-react';
 import Section from './components/Section';
 import Card from './components/Card';
 import Button from './components/Button';
@@ -27,9 +27,27 @@ import { SkillCategory, Project, Experience, Certificate, ArtCategory, ArtItem, 
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isPortfolioMenuOpen, setIsPortfolioMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [portfolioDropdownOpen, setPortfolioDropdownOpen] = useState(false);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [expandedExperienceId, setExpandedExperienceId] = useState<string | null>(null);
+  const [expandedArtCategories, setExpandedArtCategories] = useState<Record<string, boolean>>({});
+  const [expandedArtItemId, setExpandedArtItemId] = useState<string | null>(null);
+  const [selectedArtPreview, setSelectedArtPreview] = useState<{
+    title: string;
+    url: string;
+    storageKey: string;
+  } | null>(null);
+  const [dragPayload, setDragPayload] = useState<{
+    type: string;
+    fromIndex: number;
+    catIndex?: number;
+    itemIndex?: number;
+    certIndex?: number;
+  } | null>(null);
+  const projectDetailRef = useRef<HTMLDivElement>(null);
 
   // Dark Mode State
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -244,6 +262,14 @@ function App() {
       localStorage.setItem('theme', 'light');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    if (!activeProjectId) return;
+    const frame = window.requestAnimationFrame(() => {
+      projectDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeProjectId]);
 
   const ensureIds = (list: any[], prefix: string) => {
     return list.map((item, i) => {
@@ -706,8 +732,10 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
   const scrollToSection = (e: React.MouseEvent<HTMLElement>, href: string) => {
     e.preventDefault();
     setPortfolioDropdownOpen(false);
+    setIsPortfolioMenuOpen(false);
     if (href === '#') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      setIsMenuOpen(false);
       return;
     }
     try {
@@ -721,6 +749,112 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         setIsMenuOpen(false);
       }
     } catch (error) { console.warn("Navigation error:", error); }
+  };
+
+  const reorderItems = <T,>(items: T[], fromIndex: number, toIndex: number): T[] => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) {
+      return items;
+    }
+    const nextItems = [...items];
+    const [moved] = nextItems.splice(fromIndex, 1);
+    nextItems.splice(toIndex, 0, moved);
+    return nextItems;
+  };
+
+  const handleDragStart = (
+    event: React.DragEvent<HTMLElement>,
+    payload: {
+      type: string;
+      fromIndex: number;
+      catIndex?: number;
+      itemIndex?: number;
+      certIndex?: number;
+    }
+  ) => {
+    if (!isEditMode) return;
+    event.stopPropagation();
+    setDragPayload(payload);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('application/json', JSON.stringify(payload));
+  };
+
+  const allowDrop = (event: React.DragEvent<HTMLElement>) => {
+    if (!isEditMode) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  const getDropPayload = (event: React.DragEvent<HTMLElement>) => {
+    try {
+      const rawPayload = event.dataTransfer.getData('application/json');
+      return rawPayload ? JSON.parse(rawPayload) : dragPayload;
+    } catch {
+      return dragPayload;
+    }
+  };
+
+  const moveProjectTo = (fromIndex: number, toIndex: number) => {
+    setDynamicProjects(prev => {
+      const updated = reorderItems(prev, fromIndex, toIndex);
+      save('user_projects', updated);
+      return updated;
+    });
+  };
+
+  const moveExperienceTo = (fromIndex: number, toIndex: number) => {
+    setDynamicExperiences(prev => {
+      const updated = reorderItems(prev, fromIndex, toIndex);
+      save('user_experiences', updated);
+      return updated;
+    });
+  };
+
+  const moveCertificateTo = (fromIndex: number, toIndex: number) => {
+    setDynamicCertificates(prev => {
+      const updated = reorderItems(prev, fromIndex, toIndex);
+      save('user_certificates', updated);
+      return updated;
+    });
+  };
+
+  const moveContactButtonTo = (fromIndex: number, toIndex: number) => {
+    setDynamicContactButtons(prev => {
+      const updated = reorderItems(prev, fromIndex, toIndex);
+      save('user_contact_buttons', updated);
+      return updated;
+    });
+  };
+
+  const moveSkillCategoryTo = (fromIndex: number, toIndex: number) => {
+    setDynamicSkills(prev => {
+      const updated = reorderItems(prev, fromIndex, toIndex);
+      save('user_skills', updated);
+      return updated;
+    });
+  };
+
+  const moveSkillTo = (catIndex: number, fromIndex: number, toIndex: number) => {
+    setDynamicSkills(prev => {
+      const updated = prev.map((category, index) => (
+        index === catIndex
+          ? { ...category, skills: reorderItems(category.skills, fromIndex, toIndex) }
+          : category
+      ));
+      save('user_skills', updated);
+      return updated;
+    });
+  };
+
+  const moveProjectScreenshotTo = (projectIndex: number, fromIndex: number, toIndex: number) => {
+    setDynamicProjects(prev => {
+      const updated = prev.map((project, index) => (
+        index === projectIndex
+          ? { ...project, screenshots: reorderItems(project.screenshots, fromIndex, toIndex) }
+          : project
+      ));
+      save('user_projects', updated);
+      return updated;
+    });
   };
 
   // --- CRUD FUNCTIONS (Same as before) ---
@@ -761,6 +895,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
       save('user_projects', updated);
       return updated;
     });
+    setActiveProjectId(newProject.id);
   };
   const removeProject = (index: number) => {
     setDynamicProjects(prevProjects => {
@@ -943,6 +1078,17 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
       return updated;
     });
   };
+  const moveCertificateImageTo = (certIndex: number, fromIndex: number, toIndex: number) => {
+    setDynamicCertificates(prev => {
+      const updated = prev.map((cert, index) => {
+        if (index !== certIndex) return cert;
+        const urls = reorderItems(cert.urls || [cert.image], fromIndex, toIndex);
+        return { ...cert, image: urls[0], urls };
+      });
+      save('user_certificates', updated);
+      return updated;
+    });
+  };
   const updateCertificateDescription = (index: number, newDesc: string) => {
     setDynamicCertificates(prev => {
       const updated = prev.map((cert, i) => {
@@ -964,6 +1110,13 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
   const removeArtCategory = (index: number) => {
     setArtCategories(prev => {
       const updated = prev.filter((_, i) => i !== index);
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
+  const moveArtCategoryTo = (fromIndex: number, toIndex: number) => {
+    setArtCategories(prev => {
+      const updated = reorderItems(prev, fromIndex, toIndex);
       save('user_art_categories', updated);
       return updated;
     });
@@ -1082,6 +1235,71 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
       return updated;
     });
   };
+  const moveArtItemTo = (catIndex: number, fromIndex: number, toIndex: number) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => (
+        i === catIndex
+          ? { ...cat, items: reorderItems(cat.items, fromIndex, toIndex) }
+          : cat
+      ));
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
+  const moveArtItem = (catIndex: number, itemIndex: number, direction: -1 | 1) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i !== catIndex) return cat;
+        const nextIndex = itemIndex + direction;
+        if (nextIndex < 0 || nextIndex >= cat.items.length) return cat;
+
+        const items = [...cat.items];
+        [items[itemIndex], items[nextIndex]] = [items[nextIndex], items[itemIndex]];
+        return { ...cat, items };
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
+  const moveArtItemImage = (catIndex: number, itemIndex: number, imageIndex: number, direction: -1 | 1) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i !== catIndex) return cat;
+        return {
+          ...cat,
+          items: cat.items.map((item, j) => {
+            if (j !== itemIndex) return item;
+            const currentUrls = item.urls || [item.url];
+            const nextIndex = imageIndex + direction;
+            if (nextIndex < 0 || nextIndex >= currentUrls.length) return item;
+
+            const urls = [...currentUrls];
+            [urls[imageIndex], urls[nextIndex]] = [urls[nextIndex], urls[imageIndex]];
+            return { ...item, url: urls[0], urls };
+          })
+        };
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
+  const moveArtItemImageTo = (catIndex: number, itemIndex: number, fromIndex: number, toIndex: number) => {
+    setArtCategories(prev => {
+      const updated = prev.map((cat, i) => {
+        if (i !== catIndex) return cat;
+        return {
+          ...cat,
+          items: cat.items.map((item, j) => {
+            if (j !== itemIndex) return item;
+            const urls = reorderItems(item.urls || [item.url], fromIndex, toIndex);
+            return { ...item, url: urls[0], urls };
+          })
+        };
+      });
+      save('user_art_categories', updated);
+      return updated;
+    });
+  };
   // Update a specific image in an art item's gallery
   const updateArtItemImage = (catIndex: number, itemIndex: number, imageIndex: number, newUrl: string) => {
     setArtCategories(prev => {
@@ -1156,6 +1374,233 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
     }
   };
 
+  const isVideoUrl = (url: string = '') => (
+    url.includes('youtube.com') ||
+    url.includes('youtu.be') ||
+    /\.(mp4|webm|ogg)$/i.test(url)
+  );
+
+  const preloadProjectMedia = (project: Project) => {
+    const sources = [
+      localStorage.getItem(`media_project_${project.id}_main`) || project.image,
+      ...(project.screenshots || []).slice(0, 4).map((shot, index) => (
+        localStorage.getItem(`media_project_${project.id}_shot_${index}`) || shot
+      )),
+    ];
+
+    sources.forEach((src) => {
+      if (!src || isVideoUrl(src) || src.startsWith('data:video')) return;
+      const image = new window.Image();
+      image.decoding = 'async';
+      image.src = src;
+    });
+  };
+
+  const getStoredText = (keys: string | string[], fallback: string) => {
+    const lookupKeys = Array.isArray(keys) ? keys : [keys];
+    for (const key of lookupKeys) {
+      const localSaved = localStorage.getItem(`text_${key}`);
+      if (localSaved !== null) return localSaved;
+      if (CUSTOM_TEXTS && CUSTOM_TEXTS[key] !== undefined) return CUSTOM_TEXTS[key];
+    }
+    return fallback;
+  };
+
+  const renderEngineIcon = (engineIcon: Project['engineIcon'], size = 18) => {
+    const logoMap: Partial<Record<NonNullable<Project['engineIcon']>, string>> = {
+      unity: '/engine-logos/unity.png',
+      roblox: '/engine-logos/roblox.png',
+      godot: '/engine-logos/godot.png',
+      unreal: '/engine-logos/unreal.png',
+      gamemaker: '/engine-logos/gamemaker.png',
+    };
+
+    if (engineIcon === 'custom') return <LinkIcon size={size} />;
+    if (!engineIcon || engineIcon === 'none' || !logoMap[engineIcon]) return null;
+
+    return (
+      <img
+        src={logoMap[engineIcon]}
+        alt={`${engineIcon} logo`}
+        className="block object-contain"
+        style={{ width: size, height: size }}
+        draggable={false}
+      />
+    );
+  };
+
+  const renderProjectEngineControl = (project: Project, index: number) => {
+    if (isEditMode) {
+      return (
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-brand-dark bg-white text-brand-dark">
+            {renderEngineIcon(project.engineIcon, 18)}
+          </span>
+          <select
+            value={project.engineIcon || 'none'}
+            onChange={(e) => updateProjectField(index, 'engineIcon', e.target.value)}
+            className="text-xs border-2 border-brand-dark rounded px-2 py-1 bg-white text-brand-dark"
+          >
+            <option value="none">No Icon</option>
+            <option value="unity">Unity</option>
+            <option value="roblox">Roblox</option>
+            <option value="godot">Godot</option>
+            <option value="unreal">Unreal</option>
+            <option value="gamemaker">GameMaker</option>
+            <option value="custom">Link Icon</option>
+          </select>
+        </div>
+      );
+    }
+
+    if (!project.engineIcon || project.engineIcon === 'none') return null;
+
+    return (
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-brand-dark bg-white text-brand-dark shadow-retro-sm" title={project.engineIcon}>
+        {renderEngineIcon(project.engineIcon, 20)}
+      </span>
+    );
+  };
+
+  const renderProjectMedia = (project: Project, index: number, compact = false) => {
+    const mainMediaSrc = localStorage.getItem(`media_project_${project.id}_main`) || project.image;
+    const isVideoContent = isVideoUrl(mainMediaSrc);
+
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="aspect-video overflow-hidden rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-black/5 shadow-sm">
+          <EditableMedia
+            src={project.image}
+            alt={project.title}
+            className={`h-full w-full ${isVideoContent ? 'object-cover' : 'object-cover'}`}
+            wrapperClassName="h-full w-full"
+            storageKey={`project_${project.id}_main`}
+            isEditing={isEditMode}
+            onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
+          />
+        </div>
+
+        <ThumbnailScrollContainer
+          isEditing={isEditMode}
+          className="flex gap-2 overflow-x-auto pb-2 retro-scrollbar scroll-smooth snap-x snap-mandatory"
+        >
+          {project.screenshots.map((shot, sIdx) => (
+            <div
+              key={sIdx}
+              className={`flex-shrink-0 relative group/shot snap-start ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+              draggable={isEditMode}
+              onDragStart={(e) => handleDragStart(e, { type: 'project-screenshot', fromIndex: sIdx, itemIndex: index })}
+              onDragOver={allowDrop}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const payload = getDropPayload(e);
+                if (payload?.type === 'project-screenshot' && payload.itemIndex === index) {
+                  moveProjectScreenshotTo(index, payload.fromIndex, sIdx);
+                }
+                setDragPayload(null);
+              }}
+            >
+              <div className={`${compact ? 'h-20' : 'h-24 md:h-28'} w-auto overflow-hidden rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-black/5`}>
+                <EditableMedia
+                  src={shot}
+                  alt="Screenshot"
+                  className="h-full w-auto object-contain"
+                  wrapperClassName="h-full w-auto"
+                  storageKey={`project_${project.id}_shot_${sIdx}`}
+                  isEditing={isEditMode}
+                  onUpdate={(newUrl) => updateProjectMedia(index, 'screenshot', newUrl, sIdx)}
+                />
+              </div>
+              {isEditMode && (
+                <>
+                  <div className="absolute left-1 top-1 rounded-md border-2 border-white bg-brand-dark/80 p-1 text-white shadow-sm">
+                    <GripVertical size={12} />
+                  </div>
+                  <button onClick={() => removeScreenshot(index, sIdx)} className="absolute top-1 right-1 bg-brand-red text-white p-1 rounded-md border-2 border-white shadow-retro-sm hover:scale-110 transition-transform z-40 cursor-pointer">
+                    <Trash2 size={12} />
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
+          {isEditMode && (
+            <button onClick={() => addScreenshot(index)} className={`${compact ? 'h-20' : 'h-24 md:h-28'} min-w-[76px] flex-shrink-0 rounded-lg border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start`}>
+              <Plus size={22} />
+            </button>
+          )}
+        </ThumbnailScrollContainer>
+      </div>
+    );
+  };
+
+  const renderProjectDetail = (project: Project, index: number, compact = false) => (
+    <Card variant="white" className={`${compact ? 'p-3' : 'p-4 xl:p-5'} text-brand-dark dark:text-brand-bg`} disableHover>
+      <div className={`grid grid-cols-1 ${compact ? 'gap-4' : 'xl:grid-cols-12 gap-5'}`}>
+        <div className={compact ? '' : 'xl:col-span-7'}>
+          {renderProjectMedia(project, index, compact)}
+        </div>
+        <div className={`${compact ? 'gap-3' : 'xl:col-span-5 gap-4'} flex flex-col min-w-0`}>
+          <div className="rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-brand-blue p-4 shadow-retro-sm dark:shadow-retro-sm-light text-brand-dark">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div className="flex min-w-0 flex-wrap items-center gap-1 text-xs font-bold opacity-80">
+                <EditableText initialText={project.category} storageKey={`proj_cat_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" onUpdate={(newText) => updateProjectField(index, 'category', newText)} />
+                <span>|</span>
+                <EditableText initialText={project.engine} storageKey={`proj_eng_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" onUpdate={(newText) => updateProjectField(index, 'engine', newText)} />
+              </div>
+              {renderProjectEngineControl(project, index)}
+            </div>
+            <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className={`${compact ? 'text-xl' : 'text-2xl xl:text-3xl'} font-black leading-tight text-brand-dark`} onUpdate={(newText) => updateProjectField(index, 'title', newText)} />
+            <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="mt-3 text-sm font-medium leading-relaxed text-brand-dark" onUpdate={(newText) => updateProjectField(index, 'description', newText)} />
+            <div className="mt-4 flex justify-end">
+              {isEditMode ? (
+                <select value={project.status} onChange={(e) => updateProjectField(index, 'status', e.target.value)} className="bg-white border-2 border-brand-dark rounded px-2 py-1 text-xs font-bold text-brand-dark">
+                  <option value="Prototype">Prototype</option>
+                  <option value="WIP">WIP</option>
+                  <option value="Released">Released</option>
+                </select>
+              ) : (
+                <span className="bg-white border-2 border-brand-dark px-3 py-1 rounded-full text-xs font-bold uppercase text-brand-dark">Status: {project.status}</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-xl border-2 border-brand-dark dark:border-brand-bg bg-brand-orange p-3 text-brand-dark">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-brand-dark bg-white">
+              <Settings size={20} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <span className="block text-xs font-bold uppercase opacity-70">Role</span>
+              <EditableText initialText={project.role} storageKey={`proj_role_${project.id}`} isEditing={isEditMode} tag="span" className="font-bold" onUpdate={(newText) => updateProjectField(index, 'role', newText)} />
+            </div>
+          </div>
+
+          {isEditMode && (
+            <div className="bg-white p-2 border-2 border-brand-dark rounded text-brand-dark">
+              <label className="text-xs font-bold uppercase block mb-1">Project Link:</label>
+              <div className="flex items-center gap-2">
+                <LinkIcon size={14} />
+                <input type="text" value={project.link} onChange={(e) => updateProjectField(index, 'link', e.target.value)} className="w-full text-sm focus:outline-none" />
+              </div>
+            </div>
+          )}
+
+          {project.status === 'WIP' ? (
+            <Button fullWidth disabled className="flex items-center justify-center gap-2 bg-gray-400 border-gray-600 text-gray-700 cursor-not-allowed shadow-none opacity-80">
+              <Ban size={18} /> Work In Progress
+            </Button>
+          ) : (
+            <a href={project.link} target="_blank" rel="noreferrer">
+              <Button fullWidth variant="primary" className="flex items-center justify-center gap-2">
+                View Project <ExternalLink size={18} />
+              </Button>
+            </a>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+
   return (
     <>
       {showIntro && <IntroOverlay onComplete={() => setShowIntro(false)} />}
@@ -1164,23 +1609,23 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         <BackgroundAnimation isDarkMode={isDarkMode} />
 
         {/* Navbar */}
-        <nav className="sticky top-0 z-50 bg-brand-bg/95 dark:bg-brand-dark/95 backdrop-blur-sm border-b-4 border-brand-dark dark:border-brand-bg py-3 px-4 md:px-8 transition-colors duration-300">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <nav className="sticky top-0 z-50 bg-brand-bg/95 dark:bg-brand-dark/95 backdrop-blur-sm border-b-4 border-brand-dark dark:border-brand-bg py-2 px-3 md:px-6 transition-colors duration-300">
+          <div className="max-w-screen-2xl mx-auto flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <a href="#" onClick={(e) => scrollToSection(e, '#')} className="font-black text-xl tracking-tighter border-2 border-brand-dark dark:border-brand-bg px-3 py-1 rounded-lg bg-white dark:bg-brand-dark-bg dark:text-brand-bg shadow-retro-sm dark:shadow-retro-sm-light transition-all">
-                Adam Haryanto - Portfolio
+              <a href="#" onClick={(e) => scrollToSection(e, '#')} className="font-black text-base sm:text-lg md:text-xl tracking-tighter border-2 border-brand-dark dark:border-brand-bg px-3 py-1 rounded-lg bg-white dark:bg-brand-dark-bg dark:text-brand-bg shadow-retro-sm dark:shadow-retro-sm-light transition-all">
+                <span className="sm:hidden">Adam H.</span>
+                <span className="hidden sm:inline">Adam Haryanto</span>
               </a>
             </div>
 
-            <div className="hidden md:flex items-center space-x-6">
-              <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">About</a>
-              <a href="#education" onClick={(e) => scrollToSection(e, '#education')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Education</a>
-              <a href="#experience" onClick={(e) => scrollToSection(e, '#experience')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Experience</a>
-              <a href="#skills" onClick={(e) => scrollToSection(e, '#skills')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Skills</a>
+            <div className="hidden md:flex items-center gap-4 xl:gap-6">
+              <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="font-bold text-sm xl:text-base text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">About</a>
+              <a href="#experience" onClick={(e) => scrollToSection(e, '#experience')} className="font-bold text-sm xl:text-base text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Experience</a>
+              <a href="#skills" onClick={(e) => scrollToSection(e, '#skills')} className="font-bold text-sm xl:text-base text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Skills</a>
 
               <div className="relative group">
                 <button
-                  className="flex items-center gap-1 font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4"
+                  className="flex items-center gap-1 font-bold text-sm xl:text-base text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4"
                   onClick={() => setPortfolioDropdownOpen(!portfolioDropdownOpen)}
                 >
                   Portfolio <ChevronDown size={16} />
@@ -1194,7 +1639,8 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                 )}
               </div>
 
-              <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="font-bold text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Contact</a>
+              <a href="#education" onClick={(e) => scrollToSection(e, '#education')} className="font-bold text-sm xl:text-base text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Education</a>
+              <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="font-bold text-sm xl:text-base text-brand-dark dark:text-brand-bg hover:text-brand-orange transition-colors hover:underline decoration-4 underline-offset-4">Contact</a>
 
               {/* Dark Mode Toggle */}
               <button
@@ -1233,41 +1679,22 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
               )}
             </div>
 
-            <div className="flex md:hidden gap-2">
-              <button
-                onClick={toggleDarkMode}
-                className="p-2 rounded-full border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg text-brand-dark dark:text-brand-bg active:bg-gray-100"
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-              {isEditMode && (
-                <button onClick={finishEditMode} className="p-2 rounded-md border-2 bg-brand-green border-brand-dark text-white">
-                  <Check size={20} />
-                </button>
-              )}
-              <button className="p-2 border-2 border-brand-dark dark:border-brand-bg rounded-md bg-white dark:bg-brand-dark text-brand-dark dark:text-brand-bg active:bg-gray-100" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
+            <div className="md:hidden" />
           </div>
 
           {/* Mobile Menu */}
-          {isMenuOpen && (
+          {false && isMenuOpen && (
             <div className="md:hidden absolute top-full left-0 w-full bg-brand-bg dark:bg-brand-dark-bg border-b-4 border-brand-dark dark:border-brand-bg shadow-xl z-50">
-              <div className="flex flex-col p-4 space-y-4">
-                <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">About</a>
-                <a href="#education" onClick={(e) => scrollToSection(e, '#education')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Education</a>
-                <a href="#experience" onClick={(e) => scrollToSection(e, '#experience')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Experience</a>
-                <a href="#skills" onClick={(e) => scrollToSection(e, '#skills')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Skills</a>
-                <div className="block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">
-                  <span className="font-bold text-lg text-brand-dark dark:text-brand-bg block mb-2">Portfolio</span>
-                  <div className="pl-4 flex flex-col gap-2">
-                    <a href="#portfolio" onClick={(e) => scrollToSection(e, '#portfolio')} className="text-brand-dark/80 dark:text-brand-bg/80 font-bold">Project Portfolio</a>
-                    <a href="#art-portfolio" onClick={(e) => scrollToSection(e, '#art-portfolio')} className="text-brand-dark/80 dark:text-brand-bg/80 font-bold">Art Portfolio</a>
-                    <a href="#certificates" onClick={(e) => scrollToSection(e, '#certificates')} className="text-brand-dark/80 dark:text-brand-bg/80 font-bold">Certificates</a>
-                  </div>
+              <div className="p-3 space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-3 py-2 text-sm font-black text-brand-dark dark:text-brand-bg">About</a>
+                  <a href="#education" onClick={(e) => scrollToSection(e, '#education')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-3 py-2 text-sm font-black text-brand-dark dark:text-brand-bg">Education</a>
+                  <a href="#skills" onClick={(e) => scrollToSection(e, '#skills')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-3 py-2 text-sm font-black text-brand-dark dark:text-brand-bg">Skills</a>
+                  <a href="#certificates" onClick={(e) => scrollToSection(e, '#certificates')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-3 py-2 text-sm font-black text-brand-dark dark:text-brand-bg">Certificates</a>
                 </div>
-                <a href="#contact" onClick={(e) => scrollToSection(e, '#contact')} className="font-bold text-lg text-brand-dark dark:text-brand-bg block border-b-2 border-dashed border-brand-dark/20 dark:border-brand-bg/20 pb-2">Contact</a>
+                <div className="rounded-xl border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 p-3">
+                  <span className="block text-xs font-black uppercase tracking-wider opacity-60 text-brand-dark dark:text-brand-bg">Main navigation lives in the bottom tabs</span>
+                </div>
 
                 {isEditMode && (
                   <div className="flex flex-col gap-2 pt-4">
@@ -1301,26 +1728,138 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           )}
         </nav>
 
+        {(isPortfolioMenuOpen || isMenuOpen) && (
+          <div className="md:hidden fixed inset-x-3 bottom-[76px] z-50 rounded-2xl border-4 border-brand-dark dark:border-brand-bg bg-brand-bg dark:bg-brand-dark-bg p-3 shadow-retro dark:shadow-retro-light">
+            {isPortfolioMenuOpen && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-brand-dark dark:text-brand-bg">
+                  <span className="text-sm font-black uppercase">Portfolio</span>
+                  <button type="button" onClick={() => setIsPortfolioMenuOpen(false)} className="rounded-full border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark p-1">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={(e) => scrollToSection(e, '#portfolio')} className="rounded-xl border-2 border-brand-dark bg-brand-orange px-2 py-3 text-xs font-black text-brand-dark">Projects</button>
+                  <button type="button" onClick={(e) => scrollToSection(e, '#art-portfolio')} className="rounded-xl border-2 border-brand-dark bg-brand-green px-2 py-3 text-xs font-black text-brand-dark">Art</button>
+                  <button type="button" onClick={(e) => scrollToSection(e, '#certificates')} className="rounded-xl border-2 border-brand-dark bg-brand-yellow px-2 py-3 text-xs font-black text-brand-dark">Certificates</button>
+                </div>
+              </div>
+            )}
+
+            {isMenuOpen && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-brand-dark dark:text-brand-bg">
+                  <span className="text-sm font-black uppercase">More</span>
+                  <button type="button" onClick={() => setIsMenuOpen(false)} className="rounded-full border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark p-1">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={(e) => scrollToSection(e, '#about')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-2 py-2 text-xs font-black text-brand-dark dark:text-brand-bg">About</button>
+                  <button type="button" onClick={(e) => scrollToSection(e, '#education')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-2 py-2 text-xs font-black text-brand-dark dark:text-brand-bg">Education</button>
+                  <button type="button" onClick={(e) => scrollToSection(e, '#skills')} className="rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-2 py-2 text-xs font-black text-brand-dark dark:text-brand-bg">Skills</button>
+                </div>
+                <button type="button" onClick={toggleDarkMode} className="w-full rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark px-3 py-2 text-sm font-black text-brand-dark dark:text-brand-bg flex items-center justify-center gap-2">
+                  {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                  {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+                </button>
+                {isEditMode && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={finishEditMode} className="rounded-lg border-2 border-brand-dark bg-brand-green px-3 py-2 text-xs font-black text-white flex items-center justify-center gap-1">
+                      <Check size={14} /> Done
+                    </button>
+                    <button onClick={cancelEditMode} className="rounded-lg border-2 border-brand-red px-3 py-2 text-xs font-black text-brand-red flex items-center justify-center gap-1">
+                      <RotateCcw size={14} /> Cancel
+                    </button>
+                    <button onClick={exportPortfolioData} className="rounded-lg border-2 border-brand-blue px-3 py-2 text-xs font-black text-brand-blue flex items-center justify-center gap-1">
+                      <Download size={14} /> Backup
+                    </button>
+                    <label className="rounded-lg border-2 border-brand-orange px-3 py-2 text-xs font-black text-brand-orange flex items-center justify-center gap-1 cursor-pointer">
+                      <Upload size={14} /> Import
+                      <input type="file" accept=".json" onChange={importPortfolioData} className="hidden" />
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t-4 border-brand-dark dark:border-brand-bg bg-brand-bg/95 dark:bg-brand-dark/95 backdrop-blur-sm px-2 py-2">
+          <div className="grid grid-cols-5 gap-1">
+            {[
+              { href: '#', label: 'Home', icon: Home },
+              { href: '#experience', label: 'Exp', icon: Briefcase },
+              { href: 'portfolio-menu', label: 'Portfolio', icon: FolderOpen },
+              { href: '#contact', label: 'Contact', icon: Mail },
+              { href: 'more-menu', label: 'More', icon: Menu },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={(e) => {
+                    if (item.href === 'portfolio-menu') {
+                      setIsPortfolioMenuOpen(prev => !prev);
+                      setIsMenuOpen(false);
+                      return;
+                    }
+                    if (item.href === 'more-menu') {
+                      setIsMenuOpen(prev => !prev);
+                      setIsPortfolioMenuOpen(false);
+                      return;
+                    }
+                    scrollToSection(e, item.href);
+                  }}
+                  className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg border-2 border-brand-dark dark:border-brand-bg px-1 py-1.5 text-brand-dark dark:text-brand-bg shadow-retro-sm dark:shadow-retro-sm-light active:translate-x-[1px] active:translate-y-[1px] ${(item.href === 'portfolio-menu' && isPortfolioMenuOpen) || (item.href === 'more-menu' && isMenuOpen) ? 'bg-brand-yellow dark:bg-brand-yellow dark:text-brand-dark' : 'bg-white dark:bg-brand-dark-bg'}`}
+                >
+                  <Icon size={18} />
+                  <span className="w-full truncate text-[10px] font-black leading-none">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {isEditMode && (
-          <div className="fixed bottom-4 right-4 z-50 bg-brand-dark text-white px-4 py-3 rounded-xl shadow-retro border-2 border-white animate-bounce pointer-events-none">
+          <div className="fixed bottom-24 md:bottom-4 right-4 z-50 bg-brand-dark text-white px-4 py-3 rounded-xl shadow-retro border-2 border-white animate-bounce pointer-events-none">
             <p className="font-bold text-sm">Tap text or images to edit!</p>
           </div>
         )}
 
-        <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-12">
-          <SearchHeader />
-          <Card className="p-8 md:p-12 max-w-md w-full text-center" variant="green">
-            <h2 className="text-4xl md:text-5xl font-black mb-4 text-brand-dark uppercase">Portfolio</h2>
-            <EditableText initialText="Game Developer & Technical Artist" storageKey="hero_subtitle" isEditing={isEditMode} tag="p" className="font-bold text-xl mb-8 opacity-80 text-brand-dark" />
-            <div className="flex flex-col gap-4">
-              <a href="#about" onClick={(e) => scrollToSection(e, '#about')} className="w-full">
-                <Button fullWidth variant="secondary">Start Exploring</Button>
-              </a>
-              <a href={SOCIAL_LINKS.itch} target="_blank" rel="noreferrer" className="w-full">
-                <Button fullWidth variant="outline" className="bg-white text-brand-dark">Visit Itch.io</Button>
-              </a>
+        <div className="min-h-[calc(100vh-76px)] md:min-h-[62vh] flex items-center px-3 sm:px-4 lg:px-6 py-8 md:py-10">
+          <div className="mx-auto grid w-full max-w-screen-2xl grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)] gap-5 lg:gap-8 items-center">
+            <div className="min-w-0">
+              <SearchHeader />
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg p-3 text-center shadow-retro-sm dark:shadow-retro-sm-light">
+                  <span className="block text-2xl md:text-3xl font-black text-brand-dark dark:text-brand-bg">{dynamicProjects.length}</span>
+                  <span className="text-[10px] md:text-xs font-black uppercase opacity-60 text-brand-dark dark:text-brand-bg">Projects</span>
+                </div>
+                <div className="rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-brand-yellow p-3 text-center shadow-retro-sm">
+                  <span className="block text-2xl md:text-3xl font-black text-brand-dark">{artCategories.reduce((count, cat) => count + cat.items.length, 0)}</span>
+                  <span className="text-[10px] md:text-xs font-black uppercase opacity-70 text-brand-dark">Artworks</span>
+                </div>
+                <div className="rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-brand-blue p-3 text-center shadow-retro-sm">
+                  <span className="block text-2xl md:text-3xl font-black text-brand-dark">{dynamicExperiences.length}</span>
+                  <span className="text-[10px] md:text-xs font-black uppercase opacity-70 text-brand-dark">Experience</span>
+                </div>
+              </div>
             </div>
-          </Card>
+            <Card className="p-5 sm:p-6 md:p-8 w-full text-center" variant="green">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-3 text-brand-dark uppercase">Portfolio</h2>
+              <EditableText initialText="Game Developer & Technical Artist" storageKey="hero_subtitle" isEditing={isEditMode} tag="p" className="font-bold text-base sm:text-lg md:text-xl mb-5 opacity-80 text-brand-dark" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+                <a href="#portfolio" onClick={(e) => scrollToSection(e, '#portfolio')} className="w-full">
+                  <Button fullWidth variant="secondary" className="flex items-center justify-center gap-2 px-4 py-2.5"><FolderOpen size={18} /> Projects</Button>
+                </a>
+                <a href={SOCIAL_LINKS.itch} target="_blank" rel="noreferrer" className="w-full">
+                  <Button fullWidth variant="outline" className="bg-white text-brand-dark flex items-center justify-center gap-2 px-4 py-2.5">Itch.io <ArrowUpRight size={18} /></Button>
+                </a>
+              </div>
+            </Card>
+          </div>
         </div>
 
         {/* Sections */}
@@ -1384,48 +1923,122 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         <Section id="experience" title="Experience" isEditing={isEditMode} storageKey="title_experience">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {dynamicExperiences.map((exp, index) => (
-              <div key={exp.id} className="relative group/exp">
-                <Card variant="white" className="flex flex-col h-full" noShadow={false}>
-                  <div className="w-full h-48 flex-shrink-0 relative group">
-                    <EditableMedia src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white dark:to-brand-dark-bg pointer-events-none" />
-                  </div>
-                  <div className="p-6 md:p-8 flex flex-col flex-grow text-brand-dark dark:text-brand-bg">
-                    <div className="flex justify-between items-start mb-2">
-                      <EditableText initialText={exp.company} storageKey={`exp_comp_${exp.id}`} isEditing={isEditMode} tag="h3" className="text-xl md:text-2xl font-black leading-tight" />
-                      <EditableText initialText={exp.period} storageKey={`exp_period_${exp.id}`} isEditing={isEditMode} tag="span" className={`font-bold text-sm bg-brand-dark text-white px-3 py-1 rounded-md text-center ml-2 whitespace-nowrap`} />
-                    </div>
-                    <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-300/50 dark:border-brand-bg/30">
-                      {isEditMode ? (
-                        <div className="flex flex-col gap-2">
-                          <select value={exp.type} onChange={(e) => updateExperienceType(index, e.target.value as any)} className="text-xs border-2 border-brand-dark rounded p-1 w-max text-brand-dark">
-                            <option value="Work">Work</option>
-                            <option value="Organization">Organization</option>
-                          </select>
-                          <div className="flex gap-1">
-                            <span className="text-xs font-bold">Role:</span>
-                            <EditableText initialText={exp.role} storageKey={`exp_role_${exp.id}`} isEditing={true} tag="span" className="text-xs border-b border-brand-dark dark:border-brand-bg" />
+              <div
+                key={exp.id}
+                className={`relative group/exp ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                draggable={isEditMode}
+                onDragStart={(e) => handleDragStart(e, { type: 'experience', fromIndex: index })}
+                onDragOver={allowDrop}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const payload = getDropPayload(e);
+                  if (payload?.type === 'experience') moveExperienceTo(payload.fromIndex, index);
+                  setDragPayload(null);
+                }}
+              >
+                {(() => {
+                  const isExpanded = expandedExperienceId === exp.id || isEditMode;
+                  return (
+                    <>
+                    <Card variant="white" className="hidden md:flex flex-col h-full" noShadow={false}>
+                      <div className="w-full h-48 flex-shrink-0 relative group">
+                        <EditableMedia src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white dark:to-brand-dark-bg pointer-events-none" />
+                      </div>
+                      <div className="p-6 md:p-8 flex flex-col flex-grow text-brand-dark dark:text-brand-bg">
+                        <div className="flex justify-between items-start mb-2">
+                          <EditableText initialText={exp.company} storageKey={`exp_comp_${exp.id}`} isEditing={isEditMode} tag="h3" className="text-xl md:text-2xl font-black leading-tight" />
+                          <EditableText initialText={exp.period} storageKey={`exp_period_${exp.id}`} isEditing={isEditMode} tag="span" className="font-bold text-sm bg-brand-dark text-white px-3 py-1 rounded-md text-center ml-2 whitespace-nowrap" />
+                        </div>
+                        <div className="mb-6 pb-6 border-b-2 border-dashed border-gray-300/50 dark:border-brand-bg/30">
+                          {isEditMode ? (
+                            <div className="flex flex-col gap-2">
+                              <select value={exp.type} onChange={(e) => updateExperienceType(index, e.target.value as any)} className="text-xs border-2 border-brand-dark rounded p-1 w-max text-brand-dark">
+                                <option value="Work">Work</option>
+                                <option value="Organization">Organization</option>
+                              </select>
+                              <div className="flex gap-1">
+                                <span className="text-xs font-bold">Role:</span>
+                                <EditableText initialText={exp.role} storageKey={`exp_role_${exp.id}`} isEditing={true} tag="span" className="text-xs border-b border-brand-dark dark:border-brand-bg" />
+                              </div>
+                            </div>
+                          ) : (
+                            <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 border-brand-dark dark:border-brand-bg text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>{exp.role}</div>
+                          )}
+                        </div>
+                        <EditableText initialText={exp.description} storageKey={`exp_desc_${exp.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium mb-6 flex-grow" />
+                        <div className="bg-brand-yellow/30 p-4 rounded-lg border-2 border-brand-dark dark:border-brand-bg">
+                          <span className="block text-xs font-black uppercase mb-1">Key Notes</span>
+                          <EditableText initialText={exp.keyNotes} storageKey={`exp_notes_${exp.id}`} isEditing={isEditMode} tag="p" className="font-bold text-sm" />
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card variant="white" className="md:hidden flex flex-col h-full" noShadow={false}>
+                      <div
+                        role={!isEditMode ? 'button' : undefined}
+                        tabIndex={!isEditMode ? 0 : undefined}
+                        onClick={() => !isEditMode && setExpandedExperienceId(isExpanded ? null : exp.id)}
+                        className="flex w-full gap-3 p-3 text-left"
+                      >
+                        <div className="h-20 w-24 md:h-24 md:w-28 flex-shrink-0 overflow-hidden rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-black/5">
+                          <EditableMedia src={exp.image || "https://picsum.photos/seed/exp/100/100"} alt={exp.company} storageKey={`exp_img_${exp.id}`} isEditing={isEditMode} className="w-full h-full object-cover" wrapperClassName="w-full h-full" />
+                        </div>
+                        <div className="min-w-0 flex-1 text-brand-dark dark:text-brand-bg">
+                          <div className="flex items-start justify-between gap-2">
+                            <EditableText initialText={exp.company} storageKey={`exp_comp_${exp.id}`} isEditing={isEditMode} tag="h3" className="text-base md:text-lg font-black leading-tight line-clamp-2" />
+                            {!isEditMode && <ChevronDown size={18} className={`mt-1 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />}
+                          </div>
+                          <EditableText initialText={exp.period} storageKey={`exp_period_${exp.id}`} isEditing={isEditMode} tag="span" className="mt-2 inline-block font-bold text-[11px] bg-brand-dark text-white px-2 py-1 rounded-md text-center whitespace-nowrap" />
+                          {!isEditMode && (
+                            <div className={`mt-2 inline-block px-2 py-1 rounded-full text-[10px] font-bold border-2 border-brand-dark dark:border-brand-bg text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>{exp.role}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="px-4 pb-4 text-brand-dark dark:text-brand-bg">
+                          <div className="mb-4 pb-4 border-b-2 border-dashed border-gray-300/50 dark:border-brand-bg/30">
+                            {isEditMode ? (
+                              <div className="flex flex-col gap-2">
+                                <select value={exp.type} onChange={(e) => updateExperienceType(index, e.target.value as any)} className="text-xs border-2 border-brand-dark rounded p-1 w-max text-brand-dark">
+                                  <option value="Work">Work</option>
+                                  <option value="Organization">Organization</option>
+                                </select>
+                                <div className="flex gap-1">
+                                  <span className="text-xs font-bold">Role:</span>
+                                  <EditableText initialText={exp.role} storageKey={`exp_role_${exp.id}`} isEditing={true} tag="span" className="text-xs border-b border-brand-dark dark:border-brand-bg" />
+                                </div>
+                              </div>
+                            ) : (
+                              <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 border-brand-dark dark:border-brand-bg text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>{exp.role}</div>
+                            )}
+                          </div>
+                          <EditableText initialText={exp.description} storageKey={`exp_desc_${exp.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm mb-4" />
+                          <div className="bg-brand-yellow/30 p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg">
+                            <span className="block text-xs font-black uppercase mb-1">Key Notes</span>
+                            <EditableText initialText={exp.keyNotes} storageKey={`exp_notes_${exp.id}`} isEditing={isEditMode} tag="p" className="font-bold text-sm" />
                           </div>
                         </div>
-                      ) : (
-                        <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border-2 border-brand-dark dark:border-brand-bg text-brand-dark ${exp.type === 'Work' ? 'bg-brand-green' : 'bg-brand-orange'}`}>{exp.role}</div>
                       )}
-                    </div>
-                    <EditableText initialText={exp.description} storageKey={`exp_desc_${exp.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium mb-6 flex-grow" />
-                    <div className="bg-brand-yellow/30 p-4 rounded-lg border-2 border-brand-dark dark:border-brand-bg">
-                      <span className="block text-xs font-black uppercase mb-1">Key Notes</span>
-                      <EditableText initialText={exp.keyNotes} storageKey={`exp_notes_${exp.id}`} isEditing={isEditMode} tag="p" className="font-bold text-sm" />
-                    </div>
-                  </div>
-                </Card>
+                    </Card>
+                    </>
+                  );
+                })()}
                 {isEditMode && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeExperience(index); }}
-                    className="absolute -top-4 right-4 z-40 bg-brand-red text-white p-2 rounded-full shadow-retro-sm hover:scale-110 transition-transform cursor-pointer"
-                    type="button"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <>
+                    <div className="absolute -top-4 left-4 z-40 rounded-full border-2 border-brand-dark bg-brand-dark p-2 text-white shadow-retro-sm">
+                      <GripVertical size={16} />
+                    </div>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeExperience(index); }}
+                      className="absolute -top-4 right-4 z-40 bg-brand-red text-white p-2 rounded-full shadow-retro-sm hover:scale-110 transition-transform cursor-pointer"
+                      type="button"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
                 )}
               </div>
             ))}
@@ -1441,16 +2054,48 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         <Section id="skills" title="Personal Skill" isEditing={isEditMode} storageKey="title_skills">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {dynamicSkills.map((category, catIndex) => (
-              <div key={catIndex} className="flex flex-col gap-4">
+              <div
+                key={catIndex}
+                className={`flex flex-col gap-4 ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                draggable={isEditMode}
+                onDragStart={(e) => handleDragStart(e, { type: 'skill-category', fromIndex: catIndex })}
+                onDragOver={allowDrop}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const payload = getDropPayload(e);
+                  if (payload?.type === 'skill-category') moveSkillCategoryTo(payload.fromIndex, catIndex);
+                  setDragPayload(null);
+                }}
+              >
                 <div className={`p-4 border-4 border-brand-dark dark:border-brand-bg rounded-xl shadow-retro dark:shadow-retro-light text-center font-black text-xl uppercase text-brand-dark ${catIndex === 0 ? 'bg-brand-orange' : catIndex === 1 ? 'bg-brand-blue' : 'bg-brand-yellow'}`}>
+                  {isEditMode && <GripVertical size={18} className="mx-auto mb-1" />}
                   <EditableText initialText={category.title} storageKey={`skill_cat_${catIndex}`} isEditing={isEditMode} tag="span" />
                 </div>
                 <div className="flex flex-col gap-3 relative pb-4">
                   <div className="absolute left-1/2 top-0 bottom-12 w-1 bg-brand-dark/20 dark:bg-brand-bg/20 -translate-x-1/2 -z-10 border-l-2 border-dashed border-brand-dark dark:border-brand-bg"></div>
                   {category.skills.map((skill, sIndex) => (
-                    <div key={sIndex} className="relative group">
+                    <div
+                      key={sIndex}
+                      className={`relative group ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                      draggable={isEditMode}
+                      onDragStart={(e) => handleDragStart(e, { type: 'skill', fromIndex: sIndex, catIndex })}
+                      onDragOver={allowDrop}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const payload = getDropPayload(e);
+                        if (payload?.type === 'skill' && payload.catIndex === catIndex) {
+                          moveSkillTo(catIndex, payload.fromIndex, sIndex);
+                        }
+                        setDragPayload(null);
+                      }}
+                    >
                       {isEditMode ? (
                         <div className="flex gap-2 items-center">
+                          <div className="rounded-lg border-2 border-brand-dark bg-brand-dark p-2 text-white shadow-retro-sm">
+                            <GripVertical size={16} />
+                          </div>
                           <Card variant="white" className="flex-grow py-3 px-2 text-center font-bold text-sm" noShadow>
                             <input value={skill} onChange={(e) => updateSkill(catIndex, sIndex, e.target.value)} className="w-full text-center bg-transparent focus:outline-none dark:text-brand-bg" />
                           </Card>
@@ -1475,398 +2120,464 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
         </Section>
 
         <Section id="portfolio" title="Project Portfolio" isEditing={isEditMode} storageKey="title_projects">
-          <div className="space-y-12">
-            {dynamicProjects.map((project, index) => (
-              <div key={project.id} className="relative group/project">
-                <Card variant="white" className="p-6 md:p-8">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-7 flex flex-col gap-4">
-                      {/* Main Media - Video gets 16:9 aspect ratio */}
-                      {(() => {
-                        const isVideo = (url: string) =>
-                          url.includes('youtube.com') ||
-                          url.includes('youtu.be') ||
-                          url.match(/\.(mp4|webm|ogg)$/i);
+          {(() => {
+            const activeProjectIndex = dynamicProjects.findIndex(project => project.id === activeProjectId);
+            const activeProject = activeProjectIndex >= 0 ? dynamicProjects[activeProjectIndex] : null;
 
-                        const mainMediaSrc = localStorage.getItem(`media_project_${project.id}_main`) || project.image;
-                        const isVideoContent = isVideo(mainMediaSrc);
-
-                        return (
-                          <div className={`border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden shadow-sm bg-black/5 ${isVideoContent ? 'aspect-video' : ''}`}>
+            return (
+              <div className="space-y-4 md:space-y-5">
+                <div className="relative">
+                  <ThumbnailScrollContainer
+                    isEditing={isEditMode}
+                    className="flex gap-3 md:gap-4 overflow-x-auto pb-4 retro-scrollbar scroll-smooth snap-x snap-mandatory"
+                  >
+                  {dynamicProjects.map((project, index) => {
+                    const isActive = activeProjectId === project.id;
+                    const previewTitle = getStoredText(`proj_title_${project.id}`, project.title);
+                    const previewRole = getStoredText(`proj_role_${project.id}`, project.role);
+                    const previewCategory = getStoredText([`proj_cat_${project.id}`, `proj_category_${project.id}`], project.category);
+                    const previewEngine = getStoredText([`proj_eng_${project.id}`, `proj_engine_${project.id}`], project.engine);
+                    return (
+                      <div
+                        key={project.id}
+                        className={`relative w-[78vw] max-w-[360px] md:w-[360px] lg:w-[400px] xl:w-[440px] flex-shrink-0 snap-start ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                        draggable={isEditMode}
+                        onDragStart={(e) => handleDragStart(e, { type: 'project', fromIndex: index })}
+                        onDragOver={allowDrop}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const payload = getDropPayload(e);
+                          if (payload?.type === 'project') moveProjectTo(payload.fromIndex, index);
+                          setDragPayload(null);
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onMouseEnter={() => preloadProjectMedia(project)}
+                          onFocus={() => preloadProjectMedia(project)}
+                          onTouchStart={() => preloadProjectMedia(project)}
+                          onClick={() => {
+                            preloadProjectMedia(project);
+                            setActiveProjectId(isActive ? null : project.id);
+                          }}
+                          className={`w-full h-full overflow-hidden rounded-xl border-4 text-left transition-all ${isActive ? 'border-brand-dark dark:border-brand-bg bg-brand-yellow shadow-retro-sm dark:shadow-retro-sm-light' : 'border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg shadow-retro dark:shadow-retro-light hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-retro-sm'}`}
+                        >
+                          <div className="aspect-video overflow-hidden border-b-4 border-brand-dark dark:border-brand-bg bg-black/5">
                             <EditableMedia
                               src={project.image}
                               alt={project.title}
-                              className={`w-full ${isVideoContent ? 'h-full object-cover' : 'h-auto'}`}
-                              wrapperClassName={isVideoContent ? 'w-full h-full' : 'w-full'}
+                              className="h-full w-full object-cover"
+                              wrapperClassName="h-full w-full"
                               storageKey={`project_${project.id}_main`}
-                              isEditing={isEditMode}
-                              onUpdate={(newUrl) => updateProjectMedia(index, 'main', newUrl)}
+                              isEditing={false}
                             />
                           </div>
-                        );
-                      })()}
-
-                      {/* Thumbnails - Horizontal Scroll */}
-                      <div className="relative">
-                        <ThumbnailScrollContainer
-                          isEditing={isEditMode}
-                          className="flex gap-3 overflow-x-auto pb-3 retro-scrollbar scroll-smooth snap-x snap-mandatory"
-                        >
-                          {project.screenshots.map((shot, sIdx) => (
-                            <div key={sIdx} className="flex-shrink-0 relative group/shot snap-start">
-                              <div className="h-28 md:h-36 w-auto border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
-                                <EditableMedia
-                                  src={shot}
-                                  alt="Screenshot"
-                                  className="h-full w-auto object-contain"
-                                  wrapperClassName="h-full w-auto"
-                                  storageKey={`project_${project.id}_shot_${sIdx}`}
-                                  isEditing={isEditMode}
-                                  onUpdate={(newUrl) => updateProjectMedia(index, 'screenshot', newUrl, sIdx)}
-                                />
-                              </div>
-                              {isEditMode && (
-                                <button onClick={() => removeScreenshot(index, sIdx)} className="absolute top-1 right-1 bg-brand-red text-white p-1 rounded-md border-2 border-white shadow-retro-sm hover:scale-110 transition-transform z-40 cursor-pointer">
-                                  <Trash2 size={12} />
-                                </button>
-                              )}
+                          <div className="p-3 text-brand-dark dark:text-brand-bg">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <span className={`rounded-full border-2 border-brand-dark px-2 py-0.5 text-[10px] font-black uppercase text-brand-dark ${project.status === 'Released' ? 'bg-brand-green' : project.status === 'WIP' ? 'bg-gray-300' : 'bg-brand-orange'}`}>{project.status}</span>
+                              <span className="flex min-w-0 items-center gap-1 truncate text-[10px] font-black uppercase opacity-60">
+                                {renderEngineIcon(project.engineIcon, 13)}
+                                <span className="truncate">{previewCategory} | {previewEngine}</span>
+                              </span>
                             </div>
-                          ))}
-                          {isEditMode && (
-                            <button onClick={() => addScreenshot(index)} className="min-w-[80px] h-28 md:h-36 flex-shrink-0 border-2 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-lg flex items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all snap-start">
-                              <Plus size={24} />
-                            </button>
-                          )}
-                        </ThumbnailScrollContainer>
-                      </div>
-                    </div>
-                    <div className="lg:col-span-5 flex flex-col gap-6 text-brand-dark">
-                      <div className="bg-brand-blue p-6 rounded-xl border-4 border-brand-dark dark:border-brand-bg shadow-retro-sm dark:shadow-retro-sm-light">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-bold text-sm opacity-70 flex flex-wrap gap-1 items-center text-brand-dark">
-                            <EditableText initialText={project.category} storageKey={`proj_cat_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
-                            <span>|</span>
-                            <EditableText initialText={project.engine} storageKey={`proj_eng_${project.id}`} isEditing={isEditMode} tag="span" fullWidth={false} className="w-auto min-w-[40px]" />
+                            <h3 className="line-clamp-2 text-base md:text-lg font-black leading-tight">{previewTitle}</h3>
+                            <p className="mt-2 line-clamp-1 text-xs font-semibold opacity-75">{previewRole}</p>
+                            <div className="mt-3 flex items-center gap-1 text-xs font-black uppercase text-brand-blue dark:text-brand-yellow">
+                              <Eye size={14} />
+                              {isActive ? 'Close Details' : 'Open Details'}
+                            </div>
                           </div>
-                          {/* Engine Icon */}
-                          {(() => {
-                            const renderEngineIcon = (iconType?: string) => {
-                              switch (iconType) {
-                                case 'unity':
-                                  return (
-                                    <svg viewBox="0 0 128 128" className="w-6 h-6" fill="currentColor">
-                                      <path d="m64.414 122.93 47.606-27.49-18.247-10.553-18.656 10.777a1.06 1.06 0 0 1-1.035-.008 1.054 1.054 0 0 1-.523-.898V69.164c0-.754.39-1.437 1.043-1.812L96.77 54.55a1.03 1.03 0 0 1 1.035.008c.324.18.527.52.53.89v21.543l18.259 10.547V32.56l-52.18 30.12Zm0 0" />
-                                      <path opacity="0.6" d="m53.738 95.676-18.664-10.79-18.261 10.552 47.601 27.492V62.68L12.25 32.559v54.976l18.254-10.543V55.45c.008-.37.207-.71.527-.89a1.04 1.04 0 0 1 1.04-.008l22.179 12.8a2.095 2.095 0 0 1 1.043 1.813v25.598c-.004.37-.2.71-.52.902-.316.188-.71.191-1.035.012" />
-                                      <path opacity="0.8" d="M68.988 5.07v21.086l18.657 10.77c.32.187.511.531.511.906 0 .371-.195.711-.511.898L65.469 51.54a2.12 2.12 0 0 1-2.09 0L41.21 38.73a1.033 1.033 0 0 1-.516-.898 1.038 1.038 0 0 1 .516-.906l18.652-10.77V5.07L12.25 32.56l52.164 30.12 52.176-30.12Zm0 0" />
-                                    </svg>
-                                  );
-                                case 'roblox':
-                                  return (
-                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-                                      <path d="M5.164 0L0 18.836 18.836 24 24 5.164 5.164 0zm8.746 15.078l-5.088-1.326 1.326-5.088 5.088 1.326-1.326 5.088z" />
-                                    </svg>
-                                  );
-                                case 'godot':
-                                  return (
-                                    <svg viewBox="0 0 128 128" className="w-6 h-6" fill="currentColor">
-                                      <path d="M63.924 6.633c-4.375 0-8.633.508-12.727 1.398-.086.407-.148.821-.148 1.254 0 3.145 2.497 5.695 5.578 5.695s5.578-2.55 5.578-5.695c0-.254-.031-.5-.062-.746a44.706 44.706 0 0 1 3.5.062c-.031.226-.055.453-.055.684 0 3.145 2.496 5.695 5.578 5.695 3.078 0 5.578-2.55 5.578-5.695 0-.434-.063-.848-.149-1.254a50.094 50.094 0 0 0-12.671-1.398zm-21.598 4.422c-3.719 1.512-7.188 3.453-10.34 5.79.157.347.34.675.563.983 2.008 2.793 5.89 3.371 8.668 1.289.707-.531 1.258-1.188 1.672-1.91.32-.149.644-.286.976-.426-.008-.027-.02-.05-.027-.078a5.447 5.447 0 0 1-.23-1.535c0-1.5.57-2.867 1.495-3.887a47.016 47.016 0 0 0-2.777-.226zm43.348 0c-.938.043-1.86.121-2.782.226a5.608 5.608 0 0 1 1.5 3.832c0 .575-.09 1.129-.253 1.652.336.145.66.278.989.43.418.723.972 1.383 1.683 1.918 2.774 2.086 6.66 1.504 8.664-1.289.219-.308.403-.636.559-.984a49.836 49.836 0 0 0-10.36-5.785zm-32.347 3.882c-1.887 0-3.419 1.531-3.419 3.418 0 1.891 1.532 3.422 3.42 3.422 1.886 0 3.417-1.531 3.417-3.422 0-1.887-1.531-3.418-3.418-3.418zm21.348 0c-1.887 0-3.418 1.531-3.418 3.418 0 1.891 1.531 3.422 3.418 3.422 1.89 0 3.422-1.531 3.422-3.422 0-1.887-1.531-3.418-3.422-3.418zM29.96 21.07a50.093 50.093 0 0 0-7.355 8.313l.078.054c2.46 1.79 5.907 1.524 8.02-.738a5.632 5.632 0 0 0 1.207-2.196c.445-.425.895-.843 1.371-1.242a5.598 5.598 0 0 1-1.078-2.14 5.623 5.623 0 0 1-.164-1.332c-.707-.235-1.398-.485-2.079-.719zm67.934 0c-.68.234-1.371.484-2.078.718a5.544 5.544 0 0 1-1.242 3.477c.476.395.926.813 1.37 1.238a5.608 5.608 0 0 0 1.208 2.196c2.117 2.262 5.559 2.528 8.02.738l.078-.054a50.266 50.266 0 0 0-7.356-8.313zM64 24.191c-4.457 0-8.066 3.617-8.066 8.075 0 4.461 3.609 8.078 8.066 8.078 4.461 0 8.07-3.617 8.07-8.078 0-4.458-3.609-8.075-8.07-8.075zm-27.95 3.012a3.407 3.407 0 0 0-2.382.972c-1.336 1.336-1.336 3.5 0 4.836 1.336 1.332 3.504 1.332 4.84 0a3.425 3.425 0 0 0 .976-2.422c0-.914-.351-1.77-.977-2.414a3.415 3.415 0 0 0-2.457-1.028zm55.832 0a3.42 3.42 0 0 0-2.406.972 3.409 3.409 0 0 0-.977 2.414c0 .919.348 1.778.977 2.422 1.332 1.332 3.5 1.332 4.836 0 1.336-1.336 1.336-3.5 0-4.836a3.403 3.403 0 0 0-2.43-.972zm-52.508 12.93c-.598.66-1.238 1.281-1.914 1.863-.422 2.559.3 5.262 2.238 7.2 2.551 2.55 6.309 3.136 9.41 1.761-.183-.64-.343-1.293-.476-1.957-.77.344-1.606.535-2.48.535-1.673 0-3.243-.652-4.422-1.832a6.247 6.247 0 0 1-1.836-4.422c0-.836.168-1.633.476-2.367-.344-.258-.68-.52-1--.781zm48.184 0c-.32.262-.656.523-1 .777a6.18 6.18 0 0 1 .48 2.371 6.25 6.25 0 0 1-1.835 4.422 6.226 6.226 0 0 1-4.426 1.832c-.871 0-1.703-.191-2.472-.535-.137.664-.297 1.316-.48 1.957 3.097 1.375 6.859.79 9.41-1.761 1.937-1.938 2.66-4.645 2.238-7.2a32.53 32.53 0 0 1-1.914-1.863zM64 43.656c-2.758 0-4.996 2.239-4.996 4.996 0 2.758 2.238 4.996 4.996 4.996 2.762 0 5-2.238 5-4.996 0-2.757-2.238-4.996-5-4.996zm-21.29 1.176c-1.043.793-2.128 1.531-3.257 2.207 .164 3.035 1.476 5.976 3.894 8.27 3.016 2.855 7.098 4.015 10.989 3.499a38.876 38.876 0 0 1-.836-1.848c-.879.086-1.773.035-2.656-.164a11.287 11.287 0 0 1-5.379-3.02c-1.808-1.714-2.824-3.933-3.015-6.218-.074-.907-.02-1.816.168-2.692-.305-.011-.609-.023-.908-.034zm42.512 0c.188.875.242 1.785.168 2.691-.188 2.286-1.203 4.504-3.015 6.22a11.287 11.287 0 0 1-5.379 3.019c-.883.199-1.777.25-2.656.164a39.125 39.125 0 0 1-.836 1.848c3.89.516 7.973-.644 10.989-3.5 2.418-2.293 3.73-5.234 3.894-8.27a34.976 34.976 0 0 1-3.257-2.206c-.3.011-.605.023-.908.034zm-21.145 8.93c-.723 1.129-1.367 2.316-1.934 3.55.614.348 1.254.657 1.914.927a50.143 50.143 0 0 1 3.875 0c.66-.27 1.3-.579 1.914-.927a34.09 34.09 0 0 0-1.934-3.55 18.116 18.116 0 0 1-3.835 0zm-8.453 5.914a30.413 30.413 0 0 0-.879 3.828c.782.555 1.575 1.09 2.387 1.594a31.608 31.608 0 0 1 .23-3.672 14.618 14.618 0 0 1-1.738-1.75zm16.82 0a14.618 14.618 0 0 1-1.738 1.75c.113 1.219.188 2.441.23 3.672.812-.504 1.606-1.039 2.387-1.594a30.413 30.413 0 0 0-.879-3.828zm-17.554 7.941c-.098 1.207-.165 2.418-.188 3.633.796.477 1.601.938 2.422 1.371.09-1.215.168-2.425.293-3.632a41.387 41.387 0 0 1-2.527-1.372zm18.25 0a41.387 41.387 0 0 1-2.527 1.372c.125 1.207.203 2.417.293 3.632.82-.433 1.626-.894 2.422-1.371-.023-1.215-.09-2.426-.188-3.633zm-25.324 4.133c-.172 1.168-.313 2.344-.414 3.527.746.41 1.504.805 2.273 1.184.117-1.164.25-2.324.41-3.48a41.28 41.28 0 0 1-2.27-1.23zm32.356 0a41.28 41.28 0 0 1-2.27 1.23c.16 1.157.293 2.317.41 3.481.77-.379 1.527-.773 2.273-1.184a49.02 49.02 0 0 1-.413-3.527zm-38.676 2.602a49.57 49.57 0 0 0 10.996 6.797c.082-1.031.184-2.059.293-3.086a45.168 45.168 0 0 1-5.54-2.281 48.17 48.17 0 0 1-5.75-1.43zm44.977 0c-1.872.574-3.79 1.05-5.75 1.43a45.168 45.168 0 0 1-5.54 2.28c.11 1.028.211 2.056.293 3.087a49.57 49.57 0 0 0 10.997-6.797zM64 75.355c-1.234 0-2.461.043-3.68.121.016.95.043 1.899.082 2.848 1.191-.07 2.39-.11 3.598-.11 1.207 0 2.406.04 3.598.11.039-.949.066-1.899.082-2.848A50.068 50.068 0 0 0 64 75.355zM53.79 76.07c.05 1.067.113 2.133.199 3.195a50.036 50.036 0 0 1 20.022 0c.086-1.062.149-2.128.2-3.195a52.057 52.057 0 0 0-20.422 0zm.64 6.035c.094 1.05.196 2.098.321 3.145a51.86 51.86 0 0 1 18.498 0c.125-1.047.227-2.094.32-3.145a50.141 50.141 0 0 0-19.14 0zm1.078 5.945c.113.969.234 1.934.375 2.895a51.972 51.972 0 0 1 16.234 0c.14-.96.262-1.926.375-2.895a51.782 51.782 0 0 0-16.984 0zm1.563 5.625a53.113 53.113 0 0 0 13.886 0 50.296 50.296 0 0 0 .508-2.656 52.217 52.217 0 0 0-14.902 0c.14.89.324 1.777.508 2.656zm1.168 4.383c.207.758.43 1.504.676 2.242a53.193 53.193 0 0 0 5.129.407c1.742 0 3.454-.14 5.129-.407.246-.738.469-1.484.676-2.242a52.996 52.996 0 0 0-11.61 0zm2.136 5.371a49.82 49.82 0 0 0 7.253.535 49.82 49.82 0 0 0 7.254-.535 49.606 49.606 0 0 1-1.297-2.691 53.22 53.22 0 0 1-5.957.363 53.22 53.22 0 0 1-5.957-.363 49.606 49.606 0 0 1-1.296 2.69z" />
-                                    </svg>
-                                  );
-                                case 'unreal':
-                                  return (
-                                    <svg viewBox="0 0 32 32" className="w-6 h-6" fill="currentColor">
-                                      <path d="M16 0c-8.766 0-15.865 7.161-15.865 16s7.099 16 15.865 16c8.76 0 15.865-7.161 15.865-16s-7.104-16-15.87-16zM16 0.703c4.047 0 7.859 1.594 10.724 4.479 2.859 2.875 4.453 6.766 4.443 10.818 0 4.083-1.578 7.927-4.443 10.818-2.828 2.87-6.693 4.484-10.724 4.479-4.031 0.005-7.896-1.609-10.724-4.479-2.859-2.875-4.458-6.766-4.448-10.818 0-4.083 1.583-7.927 4.443-10.818 2.828-2.875 6.698-4.49 10.729-4.479zM15.203 6.333c-2.583 0.693-4.974 2.021-8.161 5.677s-2.583 6.677-2.583 6.677c0 0 0.88-2.078 2.995-4.266 1.005-1.036 1.75-1.385 2.266-1.385 0.458-0.026 0.844 0.344 0.844 0.802v7.422c0 0.734-0.474 0.896-0.911 0.885-0.37-0.005-0.714-0.135-0.714-0.135 2.172 3.156 7.37 3.599 7.37 3.599l2.281-2.438 0.052 0.047 2.089 1.781c3.823-2.271 5.667-6.479 5.667-6.479-1.708 1.802-2.792 2.224-3.438 2.224-0.573-0.005-0.797-0.339-0.797-0.339-0.031-0.156-0.083-2.417-0.104-4.677-0.021-2.339 0-4.682 0.115-4.688 0.661-1.24 2.766-3.74 2.766-3.74-3.932 0.776-6.073 3.354-6.073 3.354-0.635-0.5-1.927-0.417-1.927-0.417 0.604 0.333 1.208 1.302 1.208 2.104v7.896c0 0-1.318 1.161-2.333 1.161-0.604 0-0.974-0.328-1.177-0.599-0.078-0.104-0.146-0.219-0.198-0.344v-9.75c-0.141 0.104-0.313 0.161-0.484 0.167-0.219 0-0.443-0.109-0.594-0.427-0.115-0.24-0.188-0.599-0.188-1.125 0-1.797 2.031-2.99 2.031-2.99z" />
-                                    </svg>
-                                  );
-                                case 'gamemaker':
-                                  return (
-                                    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-                                      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 4c4.4 0 8 3.6 8 8s-3.6 8-8 8-8-3.6-8-8 3.6-8 8-8zm0 2c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 2c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z" />
-                                    </svg>
-                                  );
-                                case 'custom':
-                                  return <ExternalLink className="w-5 h-5" />;
-                                default:
-                                  return null;
-                              }
-                            };
+                        </button>
 
-                            return isEditMode ? (
-                              <select
-                                value={project.engineIcon || 'none'}
-                                onChange={(e) => updateProjectField(index, 'engineIcon', e.target.value)}
-                                className="text-xs border-2 border-brand-dark rounded px-2 py-1 bg-white text-brand-dark"
-                              >
-                                <option value="none">No Icon</option>
-                                <option value="unity">Unity</option>
-                                <option value="roblox">Roblox</option>
-                                <option value="godot">Godot</option>
-                                <option value="unreal">Unreal</option>
-                                <option value="gamemaker">GameMaker</option>
-                                <option value="custom">Link Icon</option>
-                              </select>
-                            ) : (
-                              <div className="opacity-70 text-brand-dark">
-                                {renderEngineIcon(project.engineIcon)}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                        <EditableText initialText={project.title} storageKey={`proj_title_${project.id}`} isEditing={isEditMode} tag="h3" className="text-3xl font-black mb-4 text-brand-dark" />
-                        <EditableText initialText={project.description} storageKey={`proj_desc_${project.id}`} isEditing={isEditMode} tag="p" multiline={true} className="font-medium text-sm leading-relaxed mb-6 text-brand-dark" />
-                        <div className="flex justify-end gap-2 items-center">
-                          {isEditMode ? (
-                            <select value={project.status} onChange={(e) => updateProjectField(index, 'status', e.target.value)} className="bg-white border-2 border-brand-dark rounded px-2 py-1 text-xs font-bold text-brand-dark">
-                              <option value="Prototype">Prototype</option>
-                              <option value="WIP">WIP</option>
-                              <option value="Released">Released</option>
-                            </select>
-                          ) : (
-                            <span className="bg-white border-2 border-brand-dark px-3 py-1 rounded-full text-xs font-bold uppercase text-brand-dark">Status: {project.status}</span>
-                          )}
-                        </div>
+                        {isEditMode && (
+                          <>
+                            <div className="absolute -top-2 left-3 z-40 rounded-full border-2 border-brand-dark bg-brand-dark p-2 text-white shadow-retro-sm">
+                              <GripVertical size={14} />
+                            </div>
+                            <button
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeProject(index); }}
+                              className="absolute -top-2 -right-2 z-40 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark shadow-retro-sm hover:scale-110 transition-transform cursor-pointer"
+                              type="button"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
                       </div>
-                      <Card variant="orange" className="p-4 flex items-center gap-4" noShadow>
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full border-2 border-brand-dark bg-white flex-shrink-0">
-                          <Settings size={22} className="text-brand-dark" />
-                        </div>
-                        <div className="flex-1 text-brand-dark">
-                          <span className="block text-xs font-bold uppercase opacity-70">Role</span>
-                          <EditableText initialText={project.role} storageKey={`proj_role_${project.id}`} isEditing={isEditMode} tag="span" className="font-bold" />
-                        </div>
-                      </Card>
-                      {isEditMode && (
-                        <div className="bg-white p-2 border-2 border-brand-dark rounded mb-2 text-brand-dark">
-                          <label className="text-xs font-bold uppercase block mb-1">Project Link:</label>
-                          <div className="flex items-center gap-2">
-                            <LinkIcon size={14} />
-                            <input type="text" value={project.link} onChange={(e) => updateProjectField(index, 'link', e.target.value)} className="w-full text-sm focus:outline-none" />
-                          </div>
-                        </div>
-                      )}
-                      {project.status === 'WIP' ? (
-                        <div className="mt-auto">
-                          <Button fullWidth disabled className="flex items-center justify-center gap-2 bg-gray-400 border-gray-600 text-gray-700 cursor-not-allowed shadow-none opacity-80"><Ban size={18} /> Work In Progress</Button>
-                        </div>
-                      ) : (
-                        <a href={project.link} target="_blank" rel="noreferrer" className="mt-auto">
-                          <Button fullWidth variant="primary" className="flex items-center justify-center gap-2">View Project <ExternalLink size={18} /></Button>
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-                {isEditMode && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeProject(index); }}
-                    className="absolute -top-6 right-0 z-40 bg-brand-red text-white p-2 rounded-t-lg font-bold flex items-center gap-2 hover:pb-4 transition-all cursor-pointer"
-                    type="button"
-                  >
-                    <Trash2 size={16} /> Remove Project
-                  </button>
-                )}
+                    );
+                  })}
+                  {isEditMode && (
+                    <button onClick={addProject} className="w-[78vw] max-w-[320px] md:w-[320px] aspect-video flex-shrink-0 snap-start rounded-xl border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 p-5 flex flex-col items-center justify-center gap-2 text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all font-black uppercase">
+                      <Plus size={30} /> Add New Project
+                    </button>
+                  )}
+                  </ThumbnailScrollContainer>
+                </div>
+
+                <div ref={projectDetailRef} className="scroll-mt-24">
+                  {activeProject ? (
+                    renderProjectDetail(activeProject, activeProjectIndex, false)
+                  ) : (
+                    <Card variant="white" className="p-5 md:p-8 flex flex-col items-center justify-center text-center text-brand-dark dark:text-brand-bg" disableHover>
+                      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border-4 border-brand-dark dark:border-brand-bg bg-brand-blue text-brand-dark">
+                        <FolderOpen size={30} />
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-black uppercase">Choose a project</h3>
+                      <p className="mt-2 max-w-md text-xs md:text-sm font-bold opacity-70">Swipe the project previews horizontally, then open one to see full details.</p>
+                    </Card>
+                  )}
+                </div>
               </div>
-            ))}
-            {isEditMode && (
-              <button onClick={addProject} className="w-full border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl p-8 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
-                <Plus size={48} className="mb-2 group-hover:scale-110 transition-transform" />
-                <span className="font-black text-xl uppercase">Add New Project</span>
-              </button>
-            )}
-          </div>
+            );
+          })()}
         </Section>
 
         <Section id="art-portfolio" title="Art Portfolio" isEditing={isEditMode} storageKey="title_art">
-          <div className="space-y-16">
-            {artCategories.map((category, catIndex) => (
-              <div key={category.id} className="relative group/category">
-                <div className="flex justify-between items-end relative">
-                  <div className={`text-brand-dark inline-block px-6 py-2 rounded-t-xl border-x-4 border-t-4 border-brand-dark dark:border-brand-bg font-black text-xl ${catIndex % 3 === 0 ? 'bg-brand-orange text-white' : catIndex % 3 === 1 ? 'bg-brand-green' : 'bg-brand-blue'}`}>
-                    <EditableText initialText={category.title} storageKey={`art_cat_title_${category.id}`} isEditing={isEditMode} tag="span" />
-                  </div>
-                  {isEditMode && (
-                    <div className="flex gap-2 relative z-50 transform translate-y-2">
-                      <button onClick={() => addArtItem(catIndex)} className="bg-brand-yellow text-brand-dark px-3 py-1 rounded-t-lg font-bold border-t-2 border-x-2 border-brand-dark hover:scale-105 transition-transform flex gap-2 items-center text-sm"><Plus size={14} /> Add Media</button>
+          <div className="space-y-5">
+            {artCategories.map((category, catIndex) => {
+              const isCategoryExpanded = expandedArtCategories[category.id] ?? true;
+              const previewItems = category.items.slice(0, 5);
 
+              return (
+                <div
+                  key={category.id}
+                  className={`relative group/category overflow-hidden rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg shadow-retro dark:shadow-retro-light ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                  draggable={isEditMode}
+                  onDragStart={(e) => handleDragStart(e, { type: 'art-category', fromIndex: catIndex })}
+                  onDragOver={allowDrop}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const payload = getDropPayload(e);
+                    if (payload?.type === 'art-category') moveArtCategoryTo(payload.fromIndex, catIndex);
+                    setDragPayload(null);
+                  }}
+                >
+                  <div className={`flex flex-col gap-3 p-3 md:flex-row md:items-center md:justify-between ${catIndex % 3 === 0 ? 'bg-brand-orange' : catIndex % 3 === 1 ? 'bg-brand-green' : 'bg-brand-blue'}`}>
+                    <div className="flex min-w-0 items-center gap-3 text-brand-dark">
+                      {isEditMode && (
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-brand-dark bg-brand-dark text-white shadow-retro-sm">
+                          <GripVertical size={18} />
+                        </div>
+                      )}
                       <button
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeArtCategory(catIndex); }}
-                        className="bg-brand-red text-white px-3 py-1 rounded-t-lg font-bold border-t-2 border-x-2 border-brand-dark flex gap-2 items-center text-sm cursor-pointer hover:scale-105 transition-transform"
                         type="button"
+                        onClick={() => setExpandedArtCategories(prev => ({ ...prev, [category.id]: !isCategoryExpanded }))}
+                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-brand-dark bg-white text-brand-dark shadow-retro-sm transition-transform hover:scale-105"
+                        aria-label={isCategoryExpanded ? 'Collapse art category' : 'Expand art category'}
                       >
-                        <Trash2 size={14} /> Remove Group
+                        <ChevronDown size={22} className={`transition-transform ${isCategoryExpanded ? 'rotate-180' : ''}`} />
                       </button>
+                      <div className="min-w-0">
+                        <div className="text-xl md:text-2xl font-black uppercase leading-tight">
+                          <EditableText initialText={category.title} storageKey={`art_cat_title_${category.id}`} isEditing={isEditMode} tag="span" />
+                        </div>
+                        <div className="mt-1 flex items-center gap-2 text-xs font-black uppercase opacity-75">
+                          <Images size={14} />
+                          {category.items.length} items
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 md:justify-end">
+                      <div className="flex -space-x-3 overflow-hidden">
+                        {previewItems.map((item, itemIndex) => (
+                          <div key={item.id} className="h-10 w-10 overflow-hidden rounded-lg border-2 border-brand-dark bg-white">
+                            <EditableMedia
+                              src={(item.urls && item.urls.length > 0 ? item.urls[0] : item.url)}
+                              alt={`${category.title} preview ${itemIndex + 1}`}
+                              className="h-full w-full object-contain"
+                              wrapperClassName="h-full w-full"
+                              storageKey={`art_item_${item.id}_0`}
+                              isEditing={false}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {isEditMode && (
+                        <div className="flex gap-2">
+                          <button onClick={() => addArtItem(catIndex)} className="bg-brand-yellow text-brand-dark px-3 py-2 rounded-lg font-bold border-2 border-brand-dark hover:scale-105 transition-transform flex gap-2 items-center text-xs"><Plus size={14} /> Add</button>
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeArtCategory(catIndex); }}
+                            className="bg-brand-red text-white px-3 py-2 rounded-lg font-bold border-2 border-brand-dark flex gap-2 items-center text-xs cursor-pointer hover:scale-105 transition-transform"
+                            type="button"
+                          >
+                            <Trash2 size={14} /> Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {isCategoryExpanded && (
+                    <div className="p-3 md:p-4">
+                      <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-3 md:gap-4">
+                        {category.items.map((item, itemIndex) => {
+                          const images = item.urls && item.urls.length > 0 ? item.urls : [item.url];
+                          const hasMultipleImages = images.length > 1;
+                          const isItemOpen = expandedArtItemId === item.id || isEditMode;
+                          const artTitle = item.description || `Artwork #${itemIndex + 1}`;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className={`group relative mb-3 md:mb-4 break-inside-avoid overflow-hidden rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-white dark:bg-brand-dark-bg transition-all ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''} ${expandedArtItemId === item.id ? 'shadow-retro-sm dark:shadow-retro-sm-light ring-4 ring-brand-yellow' : ''}`}
+                              draggable={isEditMode}
+                              onDragStart={(e) => handleDragStart(e, { type: 'art-item', fromIndex: itemIndex, catIndex })}
+                              onDragOver={allowDrop}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const payload = getDropPayload(e);
+                                if (payload?.type === 'art-item' && payload.catIndex === catIndex) {
+                                  moveArtItemTo(catIndex, payload.fromIndex, itemIndex);
+                                }
+                                setDragPayload(null);
+                              }}
+                            >
+                              <div className="relative overflow-hidden bg-black/5">
+                                <div
+                                  id={`gallery-${item.id}`}
+                                  className={`flex overflow-x-auto snap-x snap-mandatory scrollbar-hide ${hasMultipleImages ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                  style={{
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none',
+                                    WebkitOverflowScrolling: 'touch',
+                                  }}
+                                  onWheel={(e) => {
+                                    if (hasMultipleImages) {
+                                      e.preventDefault();
+                                      e.currentTarget.scrollLeft += e.deltaY;
+                                    }
+                                  }}
+                                  onScroll={(e) => {
+                                    if (hasMultipleImages) {
+                                      const target = e.currentTarget;
+                                      const currentIndex = Math.round(target.scrollLeft / target.clientWidth) + 1;
+                                      const indicator = document.getElementById(`indicator-${item.id}`);
+                                      if (indicator) {
+                                        indicator.textContent = `${currentIndex}/${images.length}`;
+                                      }
+                                    }
+                                  }}
+                                >
+                                  {images.map((imgUrl, imgIndex) => (
+                                    <div
+                                      key={imgIndex}
+                                      className={`relative w-full flex-shrink-0 snap-center ${!isEditMode ? 'cursor-zoom-in' : ''}`}
+                                      draggable={isEditMode}
+                                      onDragStart={(e) => handleDragStart(e, { type: 'art-image', fromIndex: imgIndex, catIndex, itemIndex })}
+                                      onDragOver={allowDrop}
+                                      onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const payload = getDropPayload(e);
+                                        if (payload?.type === 'art-image' && payload.catIndex === catIndex && payload.itemIndex === itemIndex) {
+                                          moveArtItemImageTo(catIndex, itemIndex, payload.fromIndex, imgIndex);
+                                        }
+                                        setDragPayload(null);
+                                      }}
+                                      onClick={!isEditMode ? (e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setExpandedArtItemId(item.id);
+                                        setSelectedArtPreview({
+                                          title: artTitle,
+                                          url: imgUrl,
+                                          storageKey: `art_item_${item.id}_${imgIndex}`,
+                                        });
+                                      } : undefined}
+                                    >
+                                      <EditableMedia
+                                        src={imgUrl}
+                                        alt={`${category.title} ${itemIndex + 1} - ${imgIndex + 1}`}
+                                        className="w-full h-auto object-contain"
+                                        wrapperClassName="w-full h-auto"
+                                        storageKey={`art_item_${item.id}_${imgIndex}`}
+                                        isEditing={isEditMode}
+                                        onUpdate={(newUrl) => updateArtItemImage(catIndex, itemIndex, imgIndex, newUrl)}
+                                      />
+                                      {isEditMode && images.length > 1 && (
+                                        <>
+                                          <div className="absolute bottom-2 left-2 z-40 rounded border-2 border-white bg-brand-dark/80 p-1 text-white shadow-sm">
+                                            <GripVertical size={13} />
+                                          </div>
+                                          <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeImageFromArtItem(catIndex, itemIndex, imgIndex); }}
+                                            className="absolute bottom-2 right-2 bg-brand-red text-white px-2 py-1 rounded text-xs font-bold border-2 border-white z-40 shadow-sm cursor-pointer flex items-center gap-1"
+                                            type="button"
+                                          >
+                                            <Trash2 size={12} />
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {!isEditMode && (
+                                  <div className={`pointer-events-none absolute inset-x-0 bottom-0 p-3 text-white transition-opacity duration-200 ${isItemOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88), rgba(0,0,0,0.35), transparent)' }}>
+                                    <div className="art-title line-clamp-2 text-center text-xs md:text-sm font-black uppercase tracking-wide drop-shadow-lg">
+                                      {artTitle}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {hasMultipleImages && (
+                                  <>
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const gallery = document.getElementById(`gallery-${item.id}`);
+                                        if (gallery) gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
+                                      }}
+                                      className={`absolute left-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full transition-opacity z-50 ${isEditMode || isItemOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                      aria-label="Previous"
+                                      type="button"
+                                    >
+                                      <ChevronDown size={16} className="rotate-90" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        const gallery = document.getElementById(`gallery-${item.id}`);
+                                        if (gallery) gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
+                                      }}
+                                      className={`absolute right-1 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full transition-opacity z-50 ${isEditMode || isItemOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                      aria-label="Next"
+                                      type="button"
+                                    >
+                                      <ChevronDown size={16} className="-rotate-90" />
+                                    </button>
+                                    <div
+                                      id={`indicator-${item.id}`}
+                                      className="absolute left-2 top-2 bg-black/70 text-white text-[10px] px-2 py-1 rounded-full font-bold z-30"
+                                    >
+                                      1/{images.length}
+                                    </div>
+                                  </>
+                                )}
+
+                                {isEditMode && (
+                                  <button
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); addImageToArtItem(catIndex, itemIndex); }}
+                                    className="absolute top-2 left-2 bg-brand-green text-brand-dark px-2 py-1 rounded text-[10px] font-bold border-2 border-brand-dark z-40 shadow-sm cursor-pointer flex items-center gap-1 hover:scale-105 transition-transform"
+                                    type="button"
+                                  >
+                                    <Plus size={12} /> Add
+                                  </button>
+                                )}
+                              </div>
+
+                              {isItemOpen && (
+                                <div className="border-t-4 border-brand-dark dark:border-brand-bg bg-brand-dark px-3 py-2">
+                                  <EditableText
+                                    initialText={artTitle}
+                                    storageKey={`art_desc_${item.id}`}
+                                    isEditing={isEditMode}
+                                    className="art-title text-white font-black uppercase tracking-wider drop-shadow-lg text-center"
+                                    tag="div"
+                                  />
+                                </div>
+                              )}
+
+                              {isEditMode && (
+                                <>
+                                  <div className="flex items-center justify-between gap-2 border-t-2 border-brand-dark/20 dark:border-brand-bg/20 bg-white/90 dark:bg-brand-dark-bg/90 px-2 py-2">
+                                    <div className="flex items-center gap-1 rounded-md border-2 border-brand-dark bg-brand-dark px-2 py-1 text-xs font-black uppercase text-white">
+                                      <GripVertical size={14} />
+                                      Drag
+                                    </div>
+                                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeArtItem(catIndex, itemIndex); }} className="bg-brand-red text-white p-1 rounded border-2 border-brand-dark z-40 shadow-sm cursor-pointer" type="button" title="Remove artwork">
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {category.items.length === 0 && (
+                          <div className="col-span-full py-10 text-center opacity-50 font-bold border-2 border-dashed border-brand-dark dark:border-brand-bg rounded-xl">No items yet. Click "Add" to start.</div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
-                <Card variant="white" className="p-6 rounded-tl-none relative z-40" disableHover>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-                    {category.items.map((item, itemIndex) => {
-                      // Get all images for this item (backward compatible)
-                      const images = item.urls && item.urls.length > 0 ? item.urls : [item.url];
-                      const hasMultipleImages = images.length > 1;
-
-                      return (
-                        <div key={item.id} className="group relative border-4 border-brand-dark dark:border-brand-bg rounded-xl overflow-hidden bg-black/5">
-                          {/* Gallery Container with Horizontal Scroll */}
-                          <div className="relative">
-                            <div
-                              id={`gallery-${item.id}`}
-                              className={`flex overflow-x-auto snap-x snap-mandatory scrollbar-hide ${hasMultipleImages ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                              style={{
-                                scrollbarWidth: 'none',
-                                msOverflowStyle: 'none',
-                                WebkitOverflowScrolling: 'touch',
-                              }}
-                              onWheel={(e) => {
-                                if (hasMultipleImages) {
-                                  e.preventDefault();
-                                  e.currentTarget.scrollLeft += e.deltaY;
-                                }
-                              }}
-                              onScroll={(e) => {
-                                if (hasMultipleImages) {
-                                  const target = e.currentTarget;
-                                  const currentIndex = Math.round(target.scrollLeft / target.clientWidth) + 1;
-                                  const indicator = document.getElementById(`indicator-${item.id}`);
-                                  if (indicator) {
-                                    indicator.textContent = `${currentIndex}/${images.length}`;
-                                  }
-                                }
-                              }}
-                            >
-                              {images.map((imgUrl, imgIndex) => (
-                                <div key={imgIndex} className="flex-shrink-0 w-full snap-center relative">
-                                  <EditableMedia
-                                    src={imgUrl}
-                                    alt={`${category.title} ${itemIndex + 1} - ${imgIndex + 1}`}
-                                    className="w-full h-auto block transition-transform duration-500"
-                                    wrapperClassName="w-full h-auto"
-                                    storageKey={`art_item_${item.id}_${imgIndex}`}
-                                    isEditing={isEditMode}
-                                    onUpdate={(newUrl) => updateArtItemImage(catIndex, itemIndex, imgIndex, newUrl)}
-                                  />
-                                  {/* Remove individual image button (only show if more than 1 image) */}
-                                  {isEditMode && images.length > 1 && (
-                                    <button
-                                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeImageFromArtItem(catIndex, itemIndex, imgIndex); }}
-                                      className="absolute bottom-12 right-2 bg-brand-red text-white px-2 py-1 rounded text-xs font-bold border-2 border-white z-40 shadow-sm cursor-pointer flex items-center gap-1"
-                                      type="button"
-                                    >
-                                      <Trash2 size={12} /> Remove
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Navigation arrows for horizontal scroll - visible in both modes */}
-                            {hasMultipleImages && (
-                              <>
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const gallery = document.getElementById(`gallery-${item.id}`);
-                                    if (gallery) gallery.scrollBy({ left: -gallery.clientWidth, behavior: 'smooth' });
-                                  }}
-                                  className={`absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                                  aria-label="Previous"
-                                  type="button"
-                                >
-                                  <ChevronDown size={20} className="rotate-90" />
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    const gallery = document.getElementById(`gallery-${item.id}`);
-                                    if (gallery) gallery.scrollBy({ left: gallery.clientWidth, behavior: 'smooth' });
-                                  }}
-                                  className={`absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-opacity z-50 ${isEditMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                                  aria-label="Next"
-                                  type="button"
-                                >
-                                  <ChevronDown size={20} className="-rotate-90" />
-                                </button>
-                              </>
-                            )}
-
-                            {/* Image counter indicator - shows current/total */}
-                            {hasMultipleImages && (
-                              <div
-                                id={`indicator-${item.id}`}
-                                className="absolute bottom-12 left-2 bg-black/70 text-white text-sm px-3 py-1 rounded-full font-bold z-30"
-                              >
-                                1/{images.length}
-                              </div>
-                            )}
-
-                            {/* Add image to gallery button */}
-                            {isEditMode && (
-                              <button
-                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); addImageToArtItem(catIndex, itemIndex); }}
-                                className="absolute top-2 left-2 bg-brand-green text-brand-dark px-2 py-1 rounded text-xs font-bold border-2 border-brand-dark z-40 shadow-sm cursor-pointer flex items-center gap-1 hover:scale-105 transition-transform"
-                                type="button"
-                              >
-                                <Plus size={12} /> Add to Gallery
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Title overlay with smooth gradient - from transparent to dark */}
-                          <div
-                            className={`px-4 py-3 transition-opacity duration-300 ${isEditMode ? 'relative bg-gradient-to-t from-black/90 to-black/70' : 'absolute bottom-0 left-0 right-0 pt-12 opacity-0 group-hover:opacity-100'}`}
-                            style={isEditMode ? {} : {
-                              background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.3) 60%, transparent 100%)'
-                            }}
-                          >
-                            <EditableText
-                              initialText={item.description || `Artwork #${itemIndex + 1}`}
-                              storageKey={`art_desc_${item.id}`}
-                              isEditing={isEditMode}
-                              className="art-title text-white font-black uppercase tracking-wider drop-shadow-lg text-center"
-                              tag="div"
-                            />
-                          </div>
-
-                          {/* Remove entire art item button */}
-                          {isEditMode && (
-                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeArtItem(catIndex, itemIndex); }} className="absolute top-2 right-2 bg-brand-red text-white p-1 rounded border-2 border-white z-40 shadow-sm cursor-pointer" type="button">
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {category.items.length === 0 && (
-                      <div className="col-span-full py-12 text-center opacity-50 font-bold border-2 border-dashed border-brand-dark dark:border-brand-bg rounded-xl">No items yet. Click "Add Media" to start!</div>
-                    )}
-                  </div>
-                </Card>
-              </div>
-            ))}
+              );
+            })}
             {isEditMode && (
-              <button onClick={addArtCategory} className="w-full border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl p-8 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
-                <Plus size={48} className="mb-2 group-hover:scale-100 transition-transform" />
-                <span className="font-black text-xl uppercase">Add New Portfolio Group</span>
+              <button onClick={addArtCategory} className="w-full border-4 border-dashed border-brand-dark/30 dark:border-brand-bg/30 rounded-xl p-6 flex flex-col items-center justify-center text-brand-dark/50 dark:text-brand-bg/50 hover:bg-brand-dark/5 dark:hover:bg-brand-bg/5 hover:border-brand-dark dark:hover:border-brand-bg hover:text-brand-dark dark:hover:text-brand-bg transition-all group">
+                <Plus size={40} className="mb-2 group-hover:scale-100 transition-transform" />
+                <span className="font-black text-lg uppercase">Add New Portfolio Group</span>
               </button>
             )}
           </div>
         </Section>
 
+        {selectedArtPreview && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-3 backdrop-blur-sm md:p-6"
+            onClick={() => setSelectedArtPreview(null)}
+          >
+            <div className="relative w-full max-w-6xl animate-bounce-in" onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setSelectedArtPreview(null)}
+                className="absolute -right-1 -top-5 z-50 rounded-full border-2 border-brand-dark dark:border-brand-bg bg-brand-red p-2 text-white shadow-retro-sm transition-transform hover:scale-110 md:-right-5"
+                type="button"
+                aria-label="Close artwork preview"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="max-h-[88vh] overflow-hidden rounded-xl border-4 border-brand-dark dark:border-brand-bg bg-brand-bg dark:bg-brand-dark-bg p-2 shadow-retro dark:shadow-retro-light">
+                <div className="flex max-h-[78vh] items-center justify-center overflow-hidden rounded-lg border-2 border-brand-dark/20 bg-black/10 dark:border-brand-bg/20">
+                  <EditableMedia
+                    src={selectedArtPreview.url}
+                    alt={selectedArtPreview.title}
+                    storageKey={selectedArtPreview.storageKey}
+                    isEditing={false}
+                    className="max-h-[78vh] w-full object-contain"
+                    wrapperClassName="flex max-h-[78vh] w-full items-center justify-center"
+                  />
+                </div>
+                <div className="art-title mt-2 rounded-lg border-2 border-brand-dark dark:border-brand-bg bg-brand-dark px-4 py-3 text-center text-sm font-black uppercase tracking-wide text-white md:text-lg">
+                  {selectedArtPreview.title}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <Section id="certificates" title="Certificates" isEditing={isEditMode} storageKey="title_certs">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-5">
             {dynamicCertificates.map((cert, index) => (
-              <div key={cert.id} className="relative group/cert">
-                <Card variant="white" className="p-4 group cursor-pointer hover:-translate-y-1 transition-transform" noShadow={false}>
-                  <div className="border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-4 relative cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
+              <div
+                key={cert.id}
+                className={`relative group/cert ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                draggable={isEditMode}
+                onDragStart={(e) => handleDragStart(e, { type: 'certificate', fromIndex: index })}
+                onDragOver={allowDrop}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const payload = getDropPayload(e);
+                  if (payload?.type === 'certificate') moveCertificateTo(payload.fromIndex, index);
+                  setDragPayload(null);
+                }}
+              >
+                <Card variant="white" className="p-2 md:p-3 group cursor-pointer hover:-translate-y-1 transition-transform" noShadow={false}>
+                  <div className="aspect-[4/3] border-2 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden mb-3 relative cursor-pointer bg-white" onClick={() => setSelectedCertificate(cert)}>
                     <EditableMedia
                       src={cert.image}
                       alt={cert.title}
-                      className="w-full h-auto object-contain transition-all"
+                      className="w-full h-full object-contain transition-all"
                       storageKey={`cert_img_${cert.id}`}
                       isEditing={isEditMode}
-                      wrapperClassName="w-full"
+                      wrapperClassName="w-full h-full"
                       onUpdate={(newUrl) => updateCertificateImage(index, newUrl)}
                     />
                     {(cert.urls && cert.urls.length > 1) && (
@@ -1876,10 +2587,10 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                       </div>
                     )}
                   </div>
-                  <div className={`p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center font-bold text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'} cursor-pointer`} onClick={() => setSelectedCertificate(cert)}>
+                  <div className={`p-2 md:p-3 rounded-lg border-2 border-brand-dark dark:border-brand-bg text-center font-bold text-xs md:text-sm text-brand-dark ${index % 2 === 0 ? 'bg-brand-orange' : 'bg-brand-blue'} cursor-pointer`} onClick={() => setSelectedCertificate(cert)}>
                     <EditableText initialText={cert.title} storageKey={`cert_title_${cert.id}`} isEditing={isEditMode} tag="span" />
                   </div>
-                  <div className="mt-2 text-xs text-center border-t border-dashed border-gray-400 dark:border-brand-bg/50 pt-2 text-brand-dark dark:text-brand-bg cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
+                  <div className="mt-2 text-[10px] md:text-xs text-center border-t border-dashed border-gray-400 dark:border-brand-bg/50 pt-2 text-brand-dark dark:text-brand-bg cursor-pointer" onClick={() => setSelectedCertificate(cert)}>
                     <span className="font-bold">Issuer: </span>
                     <EditableText initialText={cert.issuer} storageKey={`cert_iss_${cert.id}`} isEditing={isEditMode} tag="span" />
                     <span className="mx-2">|</span>
@@ -1891,13 +2602,18 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   </div>
                 </Card>
                 {isEditMode && (
-                  <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeCertificate(index); }}
-                    className="absolute -top-3 -right-3 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark shadow-retro-sm z-40 cursor-pointer"
-                    type="button"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <>
+                    <div className="absolute -top-3 left-3 z-40 rounded-full border-2 border-brand-dark bg-brand-dark p-2 text-white shadow-retro-sm">
+                      <GripVertical size={16} />
+                    </div>
+                    <button
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeCertificate(index); }}
+                      className="absolute -top-3 -right-3 bg-brand-red text-white p-2 rounded-full border-2 border-brand-dark shadow-retro-sm z-40 cursor-pointer"
+                      type="button"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
                 )}
               </div>
             ))}
@@ -1928,7 +2644,22 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                     {/* Gallery */}
                     <div className="space-y-4">
                       {currentCert.urls?.map((url, imgIdx) => (
-                        <div key={imgIdx} className="relative group border-4 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5">
+                        <div
+                          key={imgIdx}
+                          className={`relative group border-4 border-brand-dark dark:border-brand-bg rounded-lg overflow-hidden bg-black/5 ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                          draggable={isEditMode}
+                          onDragStart={(e) => handleDragStart(e, { type: 'certificate-image', fromIndex: imgIdx, certIndex })}
+                          onDragOver={allowDrop}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const payload = getDropPayload(e);
+                            if (payload?.type === 'certificate-image' && payload.certIndex === certIndex) {
+                              moveCertificateImageTo(certIndex, payload.fromIndex, imgIdx);
+                            }
+                            setDragPayload(null);
+                          }}
+                        >
                           <EditableMedia
                             src={url}
                             alt={`${currentCert.title} - ${imgIdx + 1}`}
@@ -1945,6 +2676,11 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                             >
                               <Trash2 size={16} />
                             </button>
+                          )}
+                          {isEditMode && (
+                            <div className="absolute left-2 top-2 rounded-full border-2 border-white bg-brand-dark/80 p-2 text-white shadow-sm">
+                              <GripVertical size={16} />
+                            </div>
                           )}
                         </div>
                       ))}
@@ -1986,9 +2722,9 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
           );
         })()}
         <Section id="contact" title="Contact Me" isEditing={isEditMode} storageKey="title_contact">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
+            <div className="lg:col-span-2 space-y-4 md:space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 {dynamicContactButtons.map((btn, index) => {
                   // Helper function to render icon
                   const renderIcon = (iconType: string) => {
@@ -2017,12 +2753,26 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   };
 
                   return (
-                    <div key={btn.id} className="relative group/contact">
+                    <div
+                      key={btn.id}
+                      className={`relative group/contact ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                      draggable={isEditMode}
+                      onDragStart={(e) => handleDragStart(e, { type: 'contact-button', fromIndex: index })}
+                      onDragOver={allowDrop}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const payload = getDropPayload(e);
+                        if (payload?.type === 'contact-button') moveContactButtonTo(payload.fromIndex, index);
+                        setDragPayload(null);
+                      }}
+                    >
                       {isEditMode ? (
                         <Card variant={btn.variant} className="p-4 text-brand-dark">
                           <div className="space-y-3">
                             <div className="flex items-center gap-2 justify-between">
                               <div className="flex items-center gap-2">
+                                <GripVertical size={18} />
                                 {renderIcon(btn.icon)}
                                 <input
                                   type="text"
@@ -2086,10 +2836,10 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                         </Card>
                       ) : (
                         <a href={btn.url} target="_blank" rel="noreferrer">
-                          <Card variant={btn.variant} className={`p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
+                          <Card variant={btn.variant} className={`p-3 md:p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${getHoverColor(btn.variant)} cursor-pointer text-brand-dark`}>
                             <div className="flex items-center gap-4 flex-shrink-0">
                               {renderIcon(btn.icon)}
-                              <span className="font-bold text-lg">{btn.label}</span>
+                              <span className="font-bold text-base md:text-lg">{btn.label}</span>
                             </div>
                             <span className="font-black text-xs md:text-sm sm:text-right">{btn.displayText}</span>
                           </Card>
@@ -2108,7 +2858,7 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   </button>
                 )}
               </div>
-              <Card variant="white" className="p-6">
+              <Card variant="white" className="p-4 md:p-6">
                 <h3 className="text-xl font-black mb-4 uppercase flex items-center gap-2 text-brand-dark dark:text-brand-bg"><Mail size={24} /> Send me an email</h3>
                 <form onSubmit={handleContactSubmit} className="space-y-4">
                   <div>
@@ -2121,13 +2871,13 @@ export const CUSTOM_IMAGES: Record<string, string> = ${JSON.stringify(remainingI
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase mb-1 text-brand-dark dark:text-brand-bg">Message</label>
-                    <textarea required value={contactForm.message} onChange={(e) => handleContactFormChange('message', e.target.value)} className="w-full border-2 border-brand-dark dark:border-brand-bg p-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange h-32 resize-none" placeholder="Let's build something awesome..." />
+                    <textarea required value={contactForm.message} onChange={(e) => handleContactFormChange('message', e.target.value)} className="w-full border-2 border-brand-dark dark:border-brand-bg p-2 rounded-lg bg-brand-bg dark:bg-brand-dark-bg dark:text-brand-bg focus:outline-none focus:ring-2 focus:ring-brand-orange h-28 md:h-32 resize-none" placeholder="Let's build something awesome..." />
                   </div>
                   <Button type="submit" fullWidth className="flex justify-center items-center gap-2"><Send size={18} /> Send Email</Button>
                 </form>
               </Card>
             </div>
-            <div className="lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-1">
               <Card variant="white" className="h-full p-2" noShadow>
                 <EditableImage src="https://picsum.photos/seed/adam/600/800" alt="Profile Contact" className="w-full h-full object-cover rounded-lg border-2 border-brand-dark dark:border-brand-bg grayscale hover:grayscale-0 transition-all duration-500" storageKey="profile_contact" isEditing={isEditMode} />
               </Card>
