@@ -1,4 +1,4 @@
-// Auto-generated from portfolio export on 2026-08-21T15:13:22.761Z
+// Auto-generated from portfolio export on 2026-08-21T15:22:05.622Z
 // 100% LOCAL DATA - Replace your constants.ts with this file
 
 import { SkillCategory, Project, Experience, Certificate, ContactButton, ArtItem, Education } from './types';
@@ -329,6 +329,16 @@ export const EXPERIENCES: Experience[] = [
     "keyNotes": "Graphic Design, Video Editing, Content Creation, Social Media mana",
     "type": "Work",
     "image": "https://images.glints.com/unsafe/glints-dashboard.oss-ap-southeast-1.aliyuncs.com/company-logo/2b45abd91ee2f554776e0aec4e99fa6e.png"
+  },
+  {
+    "id": "exp_1787325430820",
+    "company": "New Company",
+    "role": "3D Environment Artist",
+    "period": "2026",
+    "description": "I worked as a 3D Environment Artist at Gingersun Games, contributing to the development of Moonlit Orchard. My role focused on creating and refining 3D environments, props, and scene assets while maintaining visual consistency with the project's art direction. I collaborated closely with the development and art teams to ensure that environments supported both the game's visual identity and gameplay requirements. This experience strengthened my 3D art skills, attention to detail, adaptability, and ability to work effectively within a collaborative game development pipeline.\n",
+    "keyNotes": "3D Environment Artist, 3D Modeling, Collaborative, Adaptability, Attention to Detail",
+    "type": "Work",
+    "image": "https://play-lh.googleusercontent.com/6JcV_l8_EU8sZJ3cnIcjiLkbPRpt5Zwa59CX3zZ3JHPUSdOkTAEliT2k52t3WsV6878=w600-h300-pc0xffffff-pd"
   }
 ];
 
@@ -1239,7 +1249,8 @@ export const CUSTOM_TEXTS: Record<string, string> = {
   "about_desc": "I'm a Game Developer with over 3 years of experience. My skills include 3D modeling, C# and Lua programming, 2D art, graphic design, game design, and project management. Proficient in using Unity Engine and Roblox Studio. Highly adaptable to production workflows and experienced in team collaboration.",
   "hero_subtitle": "Indie Game Developer",
   "art_desc_3d_init_0": "Photorealistic test",
-  "art_desc_3d_init_1": "twe==stttttttttttttttttttttttttttttttttttttttttttttttttttt"
+  "art_desc_3d_init_1": "twe==stttttttttttttttttttttttttttttttttttttttttttttttttttt",
+  "exp_comp_exp_1787325430820": "Gingersun Games"
 };
 export const CUSTOM_IMAGES: Record<string, string> = {
   "art_item_3d_init_3_0": "https://lh3.googleusercontent.com/d/1O6uhUeT_GOa61ESuuM2iu4gXcYTOHhCA",
